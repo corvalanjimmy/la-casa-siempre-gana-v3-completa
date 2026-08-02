@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>La Casa Siempre Gana · The House Always Wins</title>
+<meta name="description" content="Juegos psicoeducativos para prevenir la adicción a los casinos y apuestas online. Educational games to prevent online gambling addiction.">
+<style>
+  :root{--bg:#0a0e1a;--panel:#141b30;--panel2:#1c2542;--gold:#f5c542;--cyan:#3ee0e8;--text:#e8ecf5;--dim:#8a94ad;--red:#ff5470;--green:#4ade80}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;justify-content:center;overflow-y:auto}
+  .wrap{width:100%;max-width:440px;padding:24px 18px;display:flex;flex-direction:column;min-height:100dvh}
+  .paso{display:none;animation:fadeIn .3s ease}
+  .paso.on{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .logo{font-size:44px;text-align:center;margin-top:18px}
+  h1{text-align:center;font-size:24px;margin:10px 0 4px;letter-spacing:.5px}
+  h1 span{color:var(--gold)}
+  .sub{text-align:center;color:var(--cyan);font-size:13.5px;font-weight:600;margin-bottom:22px}
+  .intro{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:15px;font-size:13.5px;line-height:1.55;color:#c6cde0;margin-bottom:18px}
+  .intro b{color:var(--gold)}
+  .gameT{font-size:12px;font-weight:800;color:var(--dim);letter-spacing:1.5px;margin:2px 0 8px}
+  a.game{display:block;text-decoration:none;color:var(--text);background:linear-gradient(135deg,#1c2542,#141b30);border:1.5px solid #35406b;border-radius:16px;padding:17px;margin-bottom:12px;transition:transform .08s}
+  a.game:active{transform:scale(.98)}
+  a.game.sport{background:linear-gradient(135deg,#143024,#0e2117);border-color:#2b7a4d}
+  a.game.hecho{opacity:.62}
+  .gicon{font-size:30px;float:left;margin-right:13px;line-height:1.1}
+  .glogo{float:left;width:52px;height:52px;border-radius:10px;margin-right:13px}
+  .gname{font-size:15.5px;font-weight:800;letter-spacing:.3px}
+  .gname small{color:var(--gold);font-weight:800;font-size:15.5px}
+  .gdesc{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+  .gplay{display:inline-block;margin-top:9px;font-size:12.5px;font-weight:800;color:var(--cyan)}
+  .badge{display:inline-block;font-size:10px;font-weight:800;border-radius:7px;padding:3px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.5px}
+  .badge.falta{background:var(--gold);color:#1a1200}
+  .badge.hecho{background:#24406b;color:#9fc3ff}
+  .aviso{background:linear-gradient(135deg,#123a44,#141b30);border:1px solid var(--cyan);border-radius:14px;padding:14px;font-size:13.5px;line-height:1.5;margin-bottom:14px;text-align:center}
+  .aviso b{color:var(--cyan)}
+  label{display:block;font-size:12.5px;font-weight:700;color:var(--dim);margin:12px 0 5px}
+  input,select{width:100%;background:#0d1224;border:1.5px solid #2c3554;border-radius:10px;padding:12px;font-size:15px;color:var(--text);outline:none;font-family:inherit}
+  input:focus,select:focus{border-color:var(--cyan)}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:16.5px;font-weight:700;cursor:pointer;margin-top:18px;background:linear-gradient(135deg,#f5c542,#e8963a);color:#1a1200}
+  .btn:active{transform:scale(.97)}
+  .err{display:none;color:var(--red);font-size:12.5px;font-weight:700;margin-top:10px;text-align:center}
+  .footer{margin-top:auto;padding-top:18px;font-size:11px;color:var(--dim);text-align:center;line-height:1.6}
+  /* selector de idioma */
+  .lang{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+  .perfilbtn{display:block;width:100%;text-align:left;background:var(--panel);border:1.5px solid #35406b;border-radius:16px;padding:17px;cursor:pointer;color:var(--text);font-family:inherit;margin-bottom:12px}
+  .perfilbtn:active{transform:scale(.98)}
+  .perfilbtn .ic{font-size:28px;float:left;margin-right:13px;line-height:1.1}
+  .perfilbtn .nm{font-size:16.5px;font-weight:800}
+  .perfilbtn .ds{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+  .chipperfil{display:inline-block;background:var(--panel2);border:1px solid #2c3554;border-radius:20px;padding:5px 12px;font-size:11.5px;color:var(--dim);cursor:pointer;margin-bottom:12px}
+  .langbtn{display:flex;align-items:center;gap:14px;background:var(--panel);border:1.5px solid #35406b;border-radius:16px;padding:18px;cursor:pointer;color:var(--text);font-family:inherit;text-align:left}
+  .langbtn:active{transform:scale(.98)}
+  .langbtn .fl{width:46px;height:31px;border-radius:4px;border:1px solid #2c3554;flex-shrink:0;display:block}
+  .langbtn .nm{font-size:17px;font-weight:800}
+  .langbtn .ds{font-size:12px;color:var(--dim);margin-top:2px}
+  .langswitch{position:absolute;top:14px;right:16px;background:var(--panel);border:1px solid #2c3554;color:var(--dim);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap" style="position:relative">
+  <button class="langswitch" id="langswitch" onclick="cambiarIdioma()" style="display:none">ES / EN</button>
+
+  <!-- ============ 0. IDIOMA ============ -->
+  <section class="paso on" id="p0">
+    <div class="logo">🔍</div>
+    <h1 style="font-size:19px;color:var(--dim);letter-spacing:2px">LA CASA SIEMPRE GANA</h1>
+    <div class="sub" style="font-size:12px;color:var(--dim);margin-bottom:6px">THE HOUSE ALWAYS WINS</div>
+    <div class="lang">
+      <button class="langbtn" onclick="elegir('es')">
+        <svg class="fl" viewBox="0 0 60 40"><rect width="60" height="40" fill="#c60b1e"/><rect y="10" width="60" height="20" fill="#ffc400"/></svg>
+        <span><span class="nm">Español</span><span class="ds" style="display:block">Continuar en español</span></span>
+      </button>
+      <button class="langbtn" onclick="elegir('en')">
+        <svg class="fl" viewBox="0 0 60 40"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="13"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="7"/></svg>
+        <span><span class="nm">English</span><span class="ds" style="display:block">Continue in English</span></span>
+      </button>
+    </div>
+    <div class="footer">
+      Herramienta educativa de prevención del juego problemático<br>
+      Educational tool for problem gambling prevention
+    </div>
+  </section>
+
+  <!-- ============ 1. REGISTRO ============ -->
+  <section class="paso" id="p1">
+    <div class="logo">🔍</div>
+    <h1 data-t="serieTitulo" data-t-html></h1>
+    <div class="sub" data-t="serieSub"></div>
+    <div class="intro" data-t="antesDeEntrar" data-t-html></div>
+    <label for="rNombre" data-t="tuNombre"></label>
+    <input id="rNombre" type="text" maxlength="60" data-t-ph="phNombre" autocomplete="off">
+    <label for="rEdad" data-t="tuEdad"></label>
+    <input id="rEdad" type="number" min="8" max="99" data-t-ph="phEdad" inputmode="numeric">
+    <label for="rPais" data-t="tuPais"></label>
+    <select id="rPais" onchange="document.getElementById('rPaisOtroBox').style.display = this.value==='OT' ? 'block' : 'none'"></select>
+    <div id="rPaisOtroBox" style="display:none">
+      <input id="rPaisOtro" type="text" maxlength="40" data-t-ph="phPais" style="margin-top:8px">
+    </div>
+    <label for="rEstudios" data-t="tusEstudios"></label>
+    <select id="rEstudios">
+      <option value="" disabled selected data-t="elige"></option>
+      <option value="basica" data-t="estBasica"></option>
+      <option value="media" data-t="estMedia"></option>
+      <option value="universitaria" data-t="estUniversitaria"></option>
+      <option value="posgrado" data-t="estPosgrado"></option>
+    </select>
+    <div class="err" id="rErr"></div>
+    <button class="btn" onclick="registrar()" data-t="continuar"></button>
+    <div class="footer" id="pie1"></div>
+  </section>
+
+  <!-- ============ 2. PERFIL ============ -->
+  <section class="paso" id="p2">
+    <div class="logo">👤</div>
+    <h1 data-t="perfilTitulo"></h1>
+    <div class="sub" data-t="perfilSub"></div>
+    <button class="perfilbtn" onclick="elegirPerfil('estudiante')">
+      <span class="ic">🎒</span>
+      <div class="nm" data-t="perfilEstudiante"></div>
+      <div class="ds" data-t="perfilEstudianteD"></div>
+    </button>
+    <button class="perfilbtn" onclick="elegirPerfil('apoderado')">
+      <span class="ic">👨‍👩‍👧</span>
+      <div class="nm" data-t="perfilApoderado"></div>
+      <div class="ds" data-t="perfilApoderadoD"></div>
+    </button>
+    <div class="footer" id="pie2b"></div>
+  </section>
+
+  <!-- ============ 3. MÓDULOS ============ -->
+  <section class="paso" id="p3">
+    <div class="logo">🔍</div>
+    <h1 data-t="serieTitulo" data-t-html></h1>
+    <div class="sub" data-t="serieSub"></div>
+    <span class="chipperfil" id="chipPerfil" onclick="ir(2)"></span>
+    <div id="avisoModulo"></div>
+    <div class="intro" data-t="introPortada" data-t-html></div>
+    <div class="gameT" data-t="eligeJuego"></div>
+    <a class="game" href="casino.html">
+      <span class="gicon">🎰</span>
+      <div class="gname" data-t="mod1Nombre" data-t-html></div>
+      <div class="gdesc" data-t="mod1Desc"></div>
+      <span class="gplay" data-t="jugar"></span>
+    </a>
+    <a class="game sport" href="deportes.html">
+      <img class="glogo" src="jimmybet.png" alt="JimmyBet" onerror="this.outerHTML='<span class=gicon>⚽</span>'">
+      <div class="gname" data-t="mod2Nombre" data-t-html></div>
+      <div class="gdesc" data-t="mod2Desc"></div>
+      <span class="gplay" data-t="jugar"></span>
+    </a>
+    <a class="game" href="lootbox.html" style="background:linear-gradient(135deg,#2a1a47,#1e1233);border-color:#5b3a94">
+      <span class="gicon">💎</span>
+      <div class="gname" data-t="mod3Nombre" data-t-html></div>
+      <div class="gdesc" data-t="mod3Desc"></div>
+      <span class="gplay" data-t="jugar"></span>
+    </a>
+    <a class="game" href="ruleta.html" style="background:linear-gradient(135deg,#241c33,#1a1424);border-color:#5f4d80">
+      <span class="gicon">🎡</span>
+      <div class="gname" data-t="mod4Nombre" data-t-html></div>
+      <div class="gdesc" data-t="mod4Desc"></div>
+      <span class="gplay" data-t="jugar"></span>
+    </a>
+    <button class="btn" style="display:none;background:linear-gradient(135deg,#4ade80,#22a35a);color:#04210f;border:none;border-radius:12px;padding:15px;font-size:15.5px;font-weight:700;width:100%;cursor:pointer;margin-top:6px"
+            id="btnResumen" onclick="location.href='resumen.html'" data-t="verResumen"></button>
+    <div class="footer" id="pie2"></div>
+  </section>
+</div>
+
+<script src="i18n.js"></script>
+<script>
+/* ============================================================
+   PEGA AQUÍ la URL de tu Apps Script (registro en la planilla)
+   ============================================================ */
+const REGISTRO_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+
+function ir(n){
+  document.querySelectorAll('.paso').forEach(function(p){ p.classList.remove('on'); });
+  document.getElementById('p'+n).classList.add('on');
+  document.getElementById('langswitch').style.display = (n === 0) ? 'none' : 'block';
+  if(n === 3) pintarChipPerfil();
+  window.scrollTo(0,0);
+}
+function pie(){
+  var ig = '<a href="https://instagram.com/jimmy_exludopata" target="_blank" style="color:var(--cyan);font-weight:700;text-decoration:none">@jimmy_exludopata</a>';
+  var html = t('pieEducativo') + '<br>' + t('pieEvidencia') + ' ' + ig;
+  document.getElementById('pie1').innerHTML = html;
+  document.getElementById('pie2').innerHTML = html;
+  document.getElementById('pie2b').innerHTML = html;
+}
+function elegir(l){
+  setIdioma(l); pintar(); pie(); llenarPaises(document.getElementById('rPais'));
+  ir(siguientePaso());
+}
+function siguientePaso(){
+  if(!sessionStorage.getItem('registrado')) return 1;
+  return participanteLocal().perfil ? 3 : 2;
+}
+function participanteLocal(){
+  try{ return JSON.parse(sessionStorage.getItem('participante')) || {}; }catch(e){ return {}; }
+}
+function elegirPerfil(v){
+  var p = participanteLocal();
+  p.perfil = v;
+  sessionStorage.setItem('participante', JSON.stringify(p));
+  enviarRegistro({tipo:'perfil', pid:p.pid||'', perfil:v, idioma:IDIOMA});
+  pintarChipPerfil(); ir(3);
+}
+function pintarChipPerfil(){
+  var p = participanteLocal(); if(!p.perfil) return;
+  document.getElementById('chipPerfil').textContent =
+    (p.perfil==='apoderado' ? '👨‍👩‍👧 ' + t('perfilApoderado') : '🎒 ' + t('perfilEstudiante')) + ' · ' + t('perfilCambiar');
+}
+function cambiarIdioma(){
+  setIdioma(IDIOMA === 'es' ? 'en' : 'es');
+  pintar(); pie(); llenarPaises(document.getElementById('rPais'));
+  pintarChipPerfil(); marcarJugado(); mostrarBotonResumen();
+}
+function registrar(){
+  var nombre = document.getElementById('rNombre').value.trim();
+  var edad = document.getElementById('rEdad').value.trim();
+  var selP = document.getElementById('rPais');
+  var pais = selP.value;
+  var paisOtro = document.getElementById('rPaisOtro').value.trim();
+  var estudios = document.getElementById('rEstudios').value;
+  var err = document.getElementById('rErr');
+  if(!nombre || !edad || !pais || !estudios || (pais === 'OT' && !paisOtro)){
+    err.style.display = 'block';
+    err.textContent = t('errRegistro');
+    return;
+  }
+  err.style.display = 'none';
+  var paisTexto = (pais === 'OT') ? paisOtro : selP.options[selP.selectedIndex].textContent;
+  var pid = 'P' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,5).toUpperCase();
+  var fuente = new URLSearchParams(location.search).get('src') || 'directo';
+  sessionStorage.setItem('participante', JSON.stringify({pid: pid, nombre: nombre, edad: edad, pais: pais,
+    paisNombre: paisTexto, estudios: estudios, idioma: IDIOMA, fuente: fuente}));
+  sessionStorage.setItem('registrado','1');
+  enviarRegistro({tipo:'registro', pid: pid, nombre: nombre, edad: edad, pais: pais,
+    paisNombre: paisTexto, estudios: estudios, idioma: IDIOMA, fuente: fuente});
+  ir(2);
+}
+function enviarRegistro(datos){
+  if(!REGISTRO_URL || REGISTRO_URL.indexOf('PEGA_AQUI') >= 0) return;
+  try{
+    var marco = document.getElementById('regFrame');
+    if(!marco){
+      marco = document.createElement('iframe');
+      marco.id='regFrame'; marco.name='regFrame'; marco.style.display='none';
+      document.body.appendChild(marco);
+    }
+    var form = document.createElement('form');
+    form.method='POST'; form.action=REGISTRO_URL; form.target='regFrame'; form.style.display='none';
+    Object.keys(datos).forEach(function(k){
+      var i=document.createElement('input'); i.type='hidden'; i.name=k; i.value=datos[k]; form.appendChild(i);
+    });
+    document.body.appendChild(form); form.submit();
+  }catch(e){
+    try{ navigator.sendBeacon(REGISTRO_URL, new URLSearchParams(datos)); }catch(e2){}
+  }
+}
+/* módulo jugado → marcar y destacar el que falta */
+function mostrarBotonResumen(){
+  var hay = false;
+  try{ hay = Object.keys(JSON.parse(sessionStorage.getItem('resultados') || '{}')).length > 0; }catch(e){}
+  var b = document.getElementById('btnResumen');
+  if(b) b.style.display = hay ? 'block' : 'none';
+}
+function marcarJugado(){
+  var jugado = new URLSearchParams(location.search).get('jugado');
+  var aviso = document.getElementById('avisoModulo');
+  aviso.innerHTML = '';
+  document.querySelectorAll('.badge').forEach(function(b){ b.remove(); });
+  var previos = [];
+  try{ previos = JSON.parse(sessionStorage.getItem('jugados') || '[]'); }catch(e){}
+  if(jugado && previos.indexOf(jugado) < 0){
+    previos.push(jugado);
+    try{ sessionStorage.setItem('jugados', JSON.stringify(previos)); }catch(e){}
+  }
+  if(!previos.length) return;
+  var cards = document.querySelectorAll('a.game');
+  var mapa = {casino: cards[0], jimmybet: cards[1], lootbox: cards[2], ruleta: cards[3]};
+  var nombres = {casino: t('nombreCasino'), jimmybet: t('nombreJimmybet'),
+                 lootbox: t('nombreLootbox'), ruleta: t('nombreRuleta')};
+  previos.forEach(function(k){
+    if(mapa[k]){
+      mapa[k].classList.add('hecho');
+      mapa[k].querySelector('.gname').innerHTML += ' <span class="badge hecho">' + t('yaJugado') + '</span>';
+    }
+  });
+  var faltan = Object.keys(mapa).filter(function(k){ return previos.indexOf(k) < 0; });
+  if(faltan.length >= 1){
+    faltan.forEach(function(k){
+      mapa[k].querySelector('.gname').innerHTML += ' <span class="badge falta">' + t('teFalta') + '</span>';
+    });
+    aviso.innerHTML = '<div class="aviso">' +
+      t('avisoFalta').replace('{jugado}', nombres[jugado] || nombres[previos[previos.length-1]])
+        .replace('{falta}', faltan.map(function(k){ return nombres[k]; }).join(' · ')) + '</div>';
+  } else if(faltan.length === 0){
+    aviso.innerHTML = '<div class="aviso">' + t('avisoCompleto') + '</div>';
+  }
+}
+/* arranque */
+document.addEventListener('DOMContentLoaded', function(){
+  var yaEligio = false;
+  try{ yaEligio = !!localStorage.getItem('idioma'); }catch(e){}
+  pintar(); pie(); llenarPaises(document.getElementById('rPais'));
+  pintarChipPerfil();
+  if(yaEligio) ir(siguientePaso());
+  marcarJugado(); mostrarBotonResumen();
+});
+</script>
+</body>
+</html>

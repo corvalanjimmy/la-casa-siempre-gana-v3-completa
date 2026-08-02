@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Resumen final</title>
+<style>
+  :root{--bg:#0a0e1a;--panel:#141b30;--panel2:#1c2542;--gold:#f5c542;--cyan:#3ee0e8;
+        --red:#ff5470;--green:#4ade80;--text:#e8ecf5;--dim:#8a94ad}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;justify-content:center;overflow-y:auto}
+  .wrap{width:100%;max-width:440px;padding:22px 18px;display:flex;flex-direction:column;min-height:100dvh}
+  .logo{font-size:42px;text-align:center;margin-top:12px}
+  h1{text-align:center;font-size:24px;margin:10px 0 4px}
+  h1 span{color:var(--gold)}
+  .sub{text-align:center;color:var(--cyan);font-size:13px;font-weight:600;margin-bottom:18px}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+  .stat{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:14px;text-align:center}
+  .stat .v{font-size:26px;font-weight:800}
+  .stat .l{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.35}
+  .v.gd{color:var(--gold)} .v.cy{color:var(--cyan)} .v.red{color:var(--red)} .v.gr{color:var(--green)}
+  .sectionT{font-size:12.5px;font-weight:800;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin:18px 0 9px}
+  .mod{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid #26304f;border-radius:13px;padding:12px;margin-bottom:8px}
+  .mod .ic{font-size:24px}
+  .mod .nm{flex:1;font-size:13.5px;font-weight:700}
+  .mod .nm small{display:block;font-weight:500;color:var(--dim);font-size:11.5px;margin-top:2px}
+  .mod .pt{font-size:14px;font-weight:800;color:var(--gold);white-space:nowrap}
+  .mod.pend{opacity:.6;border-style:dashed}
+  .mod.pend .pt{color:var(--dim);font-size:11.5px}
+  .cierre{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:14px;font-size:13.5px;line-height:1.6;color:#c6cde0;margin-bottom:9px}
+  .cierre b{color:var(--cyan)}
+  .frase{text-align:center;font-size:17px;font-weight:800;color:var(--gold);line-height:1.4;margin:18px 0}
+  .certbox{background:linear-gradient(135deg,#2a2410,#141b30);border:1px solid var(--gold);border-radius:16px;padding:16px;margin-top:8px}
+  .certbox h3{font-size:15px;color:var(--gold);margin-bottom:7px}
+  .certbox p{font-size:12.5px;color:#c6cde0;line-height:1.55}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px}
+  .btn-gold{background:linear-gradient(135deg,#f5c542,#e8963a);color:#1a1200}
+  .btn-ghost{background:transparent;color:var(--dim);border:1px solid #2c3554;font-weight:500;font-size:14px}
+  .vacio{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:18px;text-align:center;font-size:14px;color:var(--dim);line-height:1.6}
+  .footer{margin-top:auto;padding-top:16px;font-size:11px;color:var(--dim);text-align:center;line-height:1.6}
+  canvas{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">🏁</div>
+  <h1 data-t="resumenTitulo" data-t-html></h1>
+  <div class="sub" data-t="resumenSub"></div>
+  <div id="contenido"></div>
+  <button class="btn btn-ghost" onclick="location.href='index.html'" data-t="volverModulosBtn"></button>
+  <div class="footer" id="pie"></div>
+</div>
+<canvas id="cert" width="1400" height="990"></canvas>
+
+<script src="i18n.js"></script>
+<script>
+const MODS = [
+  {k:'casino',   ic:'🎰', nom:'nombreCasino',   total:8},
+  {k:'jimmybet', ic:'⚽', nom:'nombreJimmybet', total:10},
+  {k:'lootbox',  ic:'💎', nom:'nombreLootbox',  total:10},
+  {k:'ruleta',   ic:'🎡', nom:'nombreRuleta',   total:4}
+];
+function participante(){ try{ return JSON.parse(sessionStorage.getItem('participante'))||{}; }catch(e){ return {}; } }
+function resultados(){ try{ return JSON.parse(sessionStorage.getItem('resultados'))||{}; }catch(e){ return {}; } }
+const fmt = n => '$' + Math.round(n).toLocaleString(IDIOMA==='en'?'en-US':'es-CL');
+
+function pintarResumen(){
+  const R=resultados(), hechos=MODS.filter(m=>R[m.k]), faltan=MODS.filter(m=>!R[m.k]);
+  const cont=document.getElementById('contenido');
+  if(!hechos.length){
+    cont.innerHTML='<div class="vacio">'+t('resumenVacio')+'</div>';
+    return;
+  }
+  const lucidez=hechos.reduce((a,m)=>a+(R[m.k].lucidez||0),0);
+  const found=hechos.reduce((a,m)=>a+(R[m.k].found||0),0);
+  const totalTrampas=MODS.reduce((a,m)=>a+m.total,0);
+  const perdida=hechos.reduce((a,m)=>a+(R[m.k].perdida||0),0);
+  let html =
+    '<div class="statgrid">'
+    + '<div class="stat"><div class="v cy">'+hechos.length+'/'+MODS.length+'</div><div class="l">'+t('resumenModulos')+'</div></div>'
+    + '<div class="stat"><div class="v gd">'+lucidez+'</div><div class="l">'+t('resumenLucidez')+'</div></div>'
+    + '<div class="stat"><div class="v gr">'+found+'/'+totalTrampas+'</div><div class="l">'+t('resumenTrampas')+'</div></div>'
+    + '<div class="stat"><div class="v red">'+fmt(perdida)+'</div><div class="l">'+t('resumenPerdido')+'</div></div>'
+    + '</div>'
+    + '<div class="sectionT">'+t('resumenDetalle')+'</div>';
+  hechos.forEach(function(m){
+    const r=R[m.k];
+    html += '<div class="mod"><span class="ic">'+m.ic+'</span><div class="nm">'+t(m.nom)
+      + '<small>'+r.found+'/'+r.total+' '+t('trampas')+'</small></div>'
+      + '<span class="pt">'+r.lucidez+' '+t('pts')+'</span></div>';
+  });
+  if(faltan.length){
+    html += '<div class="sectionT">'+t('resumenPendientes')+'</div>';
+    faltan.forEach(function(m){
+      html += '<div class="mod pend"><span class="ic">'+m.ic+'</span><div class="nm">'+t(m.nom)
+        + '<small>'+m.total+' '+t('trampas')+'</small></div><span class="pt">'+t('jugar')+'</span></div>';
+    });
+  }
+  html += '<div class="sectionT">'+t('resumenCierre')+'</div>'
+    + '<div class="cierre">'+t('resumenCierre1')+'</div>'
+    + '<div class="cierre">'+t('resumenCierre2')+'</div>'
+    + '<div class="frase">'+t('resumenFrase')+'</div>'
+    + '<div class="certbox"><h3>'+t('certificadoTitulo')+'</h3><p>'+t('certificadoTexto')+'</p>'
+    + '<button class="btn btn-gold" onclick="descargar()" id="btnCert">'+t('certificadoBtn')+'</button></div>';
+  cont.innerHTML=html;
+  window.__datos = {lucidez:lucidez, found:found, total:totalTrampas, mods:hechos.length};
+}
+
+/* ---------- certificado ---------- */
+function dibujarCertificado(){
+  const d=window.__datos, p=participante();
+  const nombre = (p.nombre && p.nombre.trim()) ? p.nombre.trim() : t('certAnonimo');
+  const c=document.getElementById('cert'), g=c.getContext('2d');
+  const W=c.width, H=c.height;
+  g.fillStyle='#0a0e1a'; g.fillRect(0,0,W,H);
+  // marcos
+  g.strokeStyle='#f5c542'; g.lineWidth=8; g.strokeRect(34,34,W-68,H-68);
+  g.strokeStyle='#3ee0e8'; g.lineWidth=2; g.strokeRect(56,56,W-112,H-112);
+  const cx=W/2;
+  g.textAlign='center';
+  g.fillStyle='#8a94ad'; g.font='bold 30px Arial'; g.fillText('🔍', cx, 150);
+  g.fillStyle='#f5c542'; g.font='bold 62px Arial';
+  g.fillText(t('certNombre'), cx, 232);
+  g.fillStyle='#8a94ad'; g.font='28px Arial';
+  g.fillText(t('certOtorga'), cx, 316);
+  g.fillStyle='#e8ecf5'; g.font='bold 66px Arial';
+  let nom=nombre; if(nom.length>28) nom=nom.slice(0,28)+'…';
+  g.fillText(nom, cx, 400);
+  g.strokeStyle='#3ee0e8'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(cx-280,430); g.lineTo(cx+280,430); g.stroke();
+  g.fillStyle='#c6cde0'; g.font='27px Arial';
+  g.fillText(t('certPor'), cx, 486);
+  const linea2 = t('certPor2').replace('{n}', d.found).replace('{total}', d.total);
+  g.fillText(linea2, cx, 528);
+  // puntos
+  g.fillStyle='#3ee0e8'; g.font='bold 96px Arial';
+  g.fillText(String(d.lucidez), cx, 660);
+  g.fillStyle='#8a94ad'; g.font='bold 26px Arial';
+  g.fillText(t('certPuntos'), cx, 700);
+  // frase
+  g.fillStyle='#f5c542'; g.font='italic bold 34px Arial';
+  g.fillText(t('certFrase'), cx, 792);
+  // pie
+  const hoy=new Date();
+  const fecha=String(hoy.getDate()).padStart(2,'0')+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+hoy.getFullYear();
+  g.fillStyle='#5f6c8a'; g.font='23px Arial';
+  g.fillText(t('certPie'), cx, 878);
+  g.fillText(fecha + '  ·  @jimmy_exludopata', cx, 916);
+}
+function descargar(){
+  dibujarCertificado();
+  const c=document.getElementById('cert');
+  const a=document.createElement('a');
+  a.download = (IDIOMA==='en'?'certificate-of-clarity':'certificado-de-lucidez')+'.png';
+  a.href = c.toDataURL('image/png');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  document.getElementById('btnCert').textContent = t('certificadoListo');
+}
+document.addEventListener('DOMContentLoaded',function(){
+  pintar(); pintarResumen();
+  document.getElementById('pie').innerHTML = t('pieEducativo');
+  document.title = (IDIOMA==='en'?'Final summary':'Resumen final');
+});
+</script>
+</body>
+</html>

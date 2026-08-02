@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modo profesor · Resultados del grupo</title>
+<style>
+  :root{--bg:#0a0e1a;--panel:#141b30;--panel2:#1c2542;--gold:#f5c542;--cyan:#3ee0e8;
+        --red:#ff5470;--green:#4ade80;--text:#e8ecf5;--dim:#8a94ad}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;padding:22px}
+  .wrap{max-width:1150px;margin:0 auto}
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  h1{font-size:24px;letter-spacing:.5px}
+  h1 span{color:var(--gold)}
+  .sub{color:var(--dim);font-size:13px;margin-top:3px}
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  select,input,button{background:var(--panel);border:1px solid #2c3554;color:var(--text);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;outline:none}
+  button{cursor:pointer;font-weight:700}
+  button.pri{background:linear-gradient(135deg,#3ee0e8,#2aa6d8);color:#001518;border:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+  .kpi{background:var(--panel);border:1px solid #26304f;border-radius:16px;padding:18px}
+  .kpi .v{font-size:40px;font-weight:800;line-height:1.05}
+  .kpi .l{font-size:12.5px;color:var(--dim);margin-top:7px;line-height:1.4}
+  .kpi .s{font-size:11.5px;color:#5f6c8a;margin-top:6px}
+  .v.gold{color:var(--gold)} .v.cy{color:var(--cyan)} .v.red{color:var(--red)} .v.gr{color:var(--green)}
+  .seccion{font-size:12px;font-weight:800;color:var(--dim);letter-spacing:2px;margin:26px 0 10px;text-transform:uppercase}
+  .barra{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:15px;margin-bottom:10px}
+  .barra .top{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px}
+  .barra .top b{color:var(--gold)}
+  .track{height:12px;background:#0d1224;border-radius:7px;overflow:hidden}
+  .track div{height:100%;border-radius:7px;transition:width .5s}
+  .aviso{background:var(--panel2);border:1px solid #2c3554;border-radius:14px;padding:16px;font-size:13.5px;line-height:1.6;color:#c6cde0}
+  .aviso b{color:var(--cyan)}
+  .estado{font-size:12px;color:var(--dim);text-align:right;margin-top:14px}
+  .oculto{display:none}
+  .discusion{background:linear-gradient(135deg,#123a44,#141b30);border:1px solid var(--cyan);border-radius:14px;padding:16px;font-size:13.5px;line-height:1.65}
+  .discusion li{margin:6px 0 6px 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="tTitulo">MODO <span>PROFESOR</span></h1>
+      <div class="sub" id="tSub">Resultados del grupo en tiempo real · para proyectar en la sala</div>
+    </div>
+    <div class="ctrls">
+      <select id="fModulo" onchange="cargar()">
+        <option value="">— todos los módulos —</option>
+        <option value="casino">Módulo 1 · Casino</option>
+        <option value="jimmybet">Módulo 2 · JimmyBet</option>
+      </select>
+      <select id="fPeriodo" onchange="cargar()">
+        <option value="hoy">Solo hoy</option>
+        <option value="7">Últimos 7 días</option>
+        <option value="todo">Todo</option>
+      </select>
+      <button class="pri" onclick="cargar()" id="bAct">Actualizar</button>
+      <button onclick="cambiarIdiomaT()" id="bIdioma">EN</button>
+    </div>
+  </header>
+
+  <div id="config" class="aviso">
+    <b>Configuración inicial.</b> Pega aquí la URL de tu Apps Script (la que termina en <code>/exec</code>)
+    y quedará guardada en este navegador.
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <input id="urlIn" style="flex:1;min-width:260px" placeholder="https://script.google.com/macros/s/…/exec">
+      <button class="pri" onclick="guardarUrl()">Guardar</button>
+    </div>
+  </div>
+
+  <div id="panel" class="oculto">
+    <div class="grid" id="kpis"></div>
+    <div class="seccion" id="sConducta">Conducta frente a las trampas</div>
+    <div id="barras"></div>
+    <div class="seccion" id="sDiscusion">Para abrir la discusión</div>
+    <div class="discusion" id="discusion"></div>
+    <div class="estado" id="estado"></div>
+  </div>
+</div>
+
+<script>
+/* ============ diccionario propio (el profesor no necesita el del juego) ============ */
+var L = (localStorage.getItem('idiomaProf') || 'es');
+var D = {
+ es:{titulo:'MODO <span>PROFESOR</span>', sub:'Resultados del grupo en tiempo real · para proyectar en la sala',
+  actualizar:'Actualizar', todos:'— todos los módulos —', hoy:'Solo hoy', d7:'Últimos 7 días', todo:'Todo',
+  guardar:'Guardar', config:'<b>Configuración inicial.</b> Pega aquí la URL de tu Apps Script (la que termina en <code>/exec</code>) y quedará guardada en este navegador.',
+  conducta:'Conducta frente a las trampas', discusion:'Para abrir la discusión',
+  sesiones:'partidas jugadas', personas:'personas distintas', terminaron:'llegaron al informe final',
+  trampas:'trampas descubiertas en promedio', perdida:'perdieron en promedio (dinero ficticio)',
+  duracion:'minutos por partida en promedio',
+  bono:'aceptó el bono o la freebet', intento:'intentó retirar su dinero',
+  logro:'completó el retiro y dejó de jugar', allin:'apostó todo el saldo al menos una vez',
+  xray:'activó el Modo Rayos X', chasing:'subió la apuesta después de perder',
+  cargando:'Cargando…', sinDatos:'Todavía no hay partidas registradas en este período.',
+  error:'No se pudo conectar. Revisa la URL del Apps Script y que esté publicada para "cualquier usuario".',
+  actualizado:'Actualizado a las ', auto:' · se actualiza solo cada 60 s',
+  dPreg:'<b>Preguntas para el curso, a partir de estos datos:</b><ul>'
+   +'<li>De {n} partidas, solo <b>{retiro}%</b> logró retirar el dinero. ¿Qué los hizo seguir jugando?</li>'
+   +'<li><b>{bono}%</b> aceptó el bono "gratis". ¿Qué decía la letra chica que casi nadie leyó?</li>'
+   +'<li>El grupo descubrió <b>{trampas}</b> trampas en promedio. ¿Cuál fue la más difícil de ver y por qué?</li>'
+   +'<li><b>{chasing}%</b> subió la apuesta justo después de perder. ¿Qué se siente en ese momento?</li>'
+   +'<li>Si mantuvieran ese ritmo una hora al día, ¿cuánto sería en un año?</li></ul>'},
+ en:{titulo:'TEACHER <span>MODE</span>', sub:'Live class results · for projecting in the classroom',
+  actualizar:'Refresh', todos:'— all modules —', hoy:'Today only', d7:'Last 7 days', todo:'All time',
+  guardar:'Save', config:'<b>Initial setup.</b> Paste the URL of your Apps Script (the one ending in <code>/exec</code>) and it will be stored in this browser.',
+  conducta:'Behaviour towards the traps', discusion:'To open the discussion',
+  sesiones:'sessions played', personas:'different people', terminaron:'reached the final report',
+  trampas:'traps uncovered on average', perdida:'lost on average (fictional money)',
+  duracion:'minutes per session on average',
+  bono:'accepted the bonus or free bet', intento:'tried to withdraw their money',
+  logro:'completed the withdrawal and stopped', allin:'bet the entire balance at least once',
+  xray:'turned on X-Ray Mode', chasing:'raised the bet after losing',
+  cargando:'Loading…', sinDatos:'No sessions recorded in this period yet.',
+  error:'Could not connect. Check the Apps Script URL and that it is published for "anyone".',
+  actualizado:'Updated at ', auto:' · refreshes automatically every 60 s',
+  dPreg:'<b>Questions for the class, based on this data:</b><ul>'
+   +'<li>Out of {n} sessions, only <b>{retiro}%</b> managed to withdraw the money. What kept them playing?</li>'
+   +'<li><b>{bono}%</b> accepted the "free" bonus. What did the fine print say that almost nobody read?</li>'
+   +'<li>The group uncovered <b>{trampas}</b> traps on average. Which was the hardest to spot and why?</li>'
+   +'<li><b>{chasing}%</b> raised their bet right after losing. What does that moment feel like?</li>'
+   +'<li>If they kept that pace one hour a day, how much would it be in a year?</li></ul>'}
+};
+function T(k){ return (D[L]||D.es)[k]; }
+function pintarT(){
+  document.getElementById('tTitulo').innerHTML=T('titulo');
+  document.getElementById('tSub').textContent=T('sub');
+  document.getElementById('bAct').textContent=T('actualizar');
+  document.getElementById('bIdioma').textContent = (L==='es')?'EN':'ES';
+  document.getElementById('config').innerHTML = T('config')
+    + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'
+    + '<input id="urlIn" style="flex:1;min-width:260px" placeholder="https://script.google.com/macros/s/…/exec">'
+    + '<button class="pri" onclick="guardarUrl()">'+T('guardar')+'</button></div>';
+  var fm=document.getElementById('fModulo'); fm.options[0].text=T('todos');
+  var fp=document.getElementById('fPeriodo');
+  fp.options[0].text=T('hoy'); fp.options[1].text=T('d7'); fp.options[2].text=T('todo');
+  document.getElementById('sConducta').textContent=T('conducta');
+  document.getElementById('sDiscusion').textContent=T('discusion');
+}
+function cambiarIdiomaT(){ L=(L==='es')?'en':'es'; localStorage.setItem('idiomaProf',L); pintarT(); cargar(); }
+
+/* ============ datos ============ */
+function urlBase(){ return localStorage.getItem('urlProfesor') || ''; }
+function guardarUrl(){
+  var v=document.getElementById('urlIn').value.trim();
+  if(!v){ return; }
+  localStorage.setItem('urlProfesor', v);
+  document.getElementById('config').classList.add('oculto');
+  document.getElementById('panel').classList.remove('oculto');
+  cargar();
+}
+function num(x){ return (typeof x==='number' && isFinite(x))? x : 0; }
+function fmtDinero(n){ return '$'+Math.round(num(n)).toLocaleString(L==='en'?'en-US':'es-CL'); }
+
+function cargar(){
+  var base=urlBase(); if(!base) return;
+  document.getElementById('estado').textContent=T('cargando');
+  var cb='cbProf'+Date.now();
+  window[cb]=function(data){ pintarDatos(data); delete window[cb]; };
+  var s=document.createElement('script');
+  s.src = base + (base.indexOf('?')>=0?'&':'?') + 'accion=resumen'
+        + '&modulo=' + encodeURIComponent(document.getElementById('fModulo').value)
+        + '&periodo=' + encodeURIComponent(document.getElementById('fPeriodo').value)
+        + '&callback=' + cb;
+  s.onerror=function(){ document.getElementById('estado').textContent=T('error'); };
+  document.body.appendChild(s);
+  setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 15000);
+}
+function kpi(v,l,cls,sub){
+  return '<div class="kpi"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div>'
+       + (sub? '<div class="s">'+sub+'</div>':'') + '</div>';
+}
+function barra(pct,label,color){
+  return '<div class="barra"><div class="top"><span>'+label+'</span><b>'+pct+'%</b></div>'
+       + '<div class="track"><div style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+}
+function pintarDatos(d){
+  if(!d || !d.n){
+    document.getElementById('kpis').innerHTML='<div class="aviso">'+T('sinDatos')+'</div>';
+    document.getElementById('barras').innerHTML=''; document.getElementById('discusion').innerHTML='';
+    document.getElementById('estado').textContent='';
+    return;
+  }
+  document.getElementById('kpis').innerHTML =
+    kpi(d.n, T('sesiones'), 'cy') +
+    kpi(d.personas, T('personas'), 'cy') +
+    kpi(d.pctCompleto+'%', T('terminaron'), 'gr') +
+    kpi(d.trampasMedia, T('trampas'), 'gold', '/ '+d.trampasTotal) +
+    kpi(fmtDinero(d.perdidaMedia), T('perdida'), 'red') +
+    kpi(d.duracionMedia, T('duracion'), 'cy');
+  document.getElementById('barras').innerHTML =
+    barra(d.pctBono, T('bono'), 'var(--gold)') +
+    barra(d.pctChasing, T('chasing'), 'var(--red)') +
+    barra(d.pctAllin, T('allin'), 'var(--red)') +
+    barra(d.pctIntentoRetiro, T('intento'), 'var(--cyan)') +
+    barra(d.pctRetiroLogrado, T('logro'), 'var(--green)') +
+    barra(d.pctXray, T('xray'), 'var(--cyan)');
+  document.getElementById('discusion').innerHTML = T('dPreg')
+    .replace('{n}', d.n).replace('{retiro}', d.pctRetiroLogrado)
+    .replace('{bono}', d.pctBono).replace('{trampas}', d.trampasMedia)
+    .replace('{chasing}', d.pctChasing);
+  var h=new Date();
+  document.getElementById('estado').textContent = T('actualizado')
+    + h.getHours()+':'+String(h.getMinutes()).padStart(2,'0') + T('auto');
+}
+/* arranque */
+pintarT();
+if(urlBase()){
+  document.getElementById('config').classList.add('oculto');
+  document.getElementById('panel').classList.remove('oculto');
+  cargar();
+}
+setInterval(function(){ if(urlBase()) cargar(); }, 60000);
+</script>
+</body>
+</html>

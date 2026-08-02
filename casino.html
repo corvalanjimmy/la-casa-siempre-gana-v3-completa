@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Módulo 1 · La Casa Siempre Gana</title>
+<style>
+  :root{--bg:#0a0e1a;--panel:#141b30;--panel2:#1c2542;--gold:#f5c542;--cyan:#3ee0e8;
+        --red:#ff5470;--green:#4ade80;--text:#e8ecf5;--dim:#8a94ad}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);
+       display:flex;justify-content:center;min-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #app{width:100%;max-width:440px;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+  .screen{display:none;flex:1;flex-direction:column;padding:16px;animation:fadeIn .35s ease}
+  .screen.active{display:flex}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .logo{font-size:42px;text-align:center;margin-top:26px}
+  .chip{display:block;text-align:center;font-size:12px;font-weight:800;color:var(--dim);letter-spacing:2px}
+  h1{text-align:center;font-size:26px;margin:10px 0 4px;letter-spacing:.5px}
+  h1 .gold{color:var(--gold)}
+  .subtitle{text-align:center;color:var(--cyan);font-size:14px;margin-bottom:20px;font-weight:600}
+  .card{background:var(--panel);border:1px solid #26304f;border-radius:14px;padding:16px;margin-bottom:12px;font-size:14.5px;line-height:1.55}
+  .card b{color:var(--gold)}
+  .card.cyanb{border-color:var(--cyan)}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:16.5px;font-weight:700;cursor:pointer;margin-top:8px;transition:transform .08s}
+  .btn:active{transform:scale(.97)}
+  .btn-gold{background:linear-gradient(135deg,#f5c542,#e8963a);color:#1a1200}
+  .btn-ghost{background:transparent;color:var(--dim);border:1px solid #2c3554;font-weight:500;font-size:14px}
+  .btn-cyan{background:linear-gradient(135deg,#3ee0e8,#2aa6d8);color:#001518}
+  .btn-green{background:linear-gradient(135deg,#4ade80,#22a35a);color:#04210f}
+  .disclaimer{font-size:11.5px;color:var(--dim);text-align:center;margin-top:auto;padding-top:14px;line-height:1.5}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 2px 10px}
+  .backbtn{background:transparent;border:1px solid #2c3554;color:var(--dim);border-radius:10px;padding:7px 11px;font-size:14px;font-weight:700;cursor:pointer;line-height:1}
+  .balance{font-size:20px;font-weight:800;color:var(--gold)}
+  .balance small{font-size:11px;color:var(--dim);display:block;font-weight:500}
+  .lucidez{font-size:13px;font-weight:700;color:var(--cyan);text-align:right}
+  .toggles{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
+  .tg{background:var(--panel);border:1px solid #2c3554;border-radius:20px;padding:5px 10px;font-size:11.5px;color:var(--dim);cursor:pointer;user-select:none;white-space:nowrap}
+  .tg.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(62,224,232,.3)}
+  .urgency{background:linear-gradient(90deg,#7a1230,#b91d47);border-radius:10px;padding:9px 12px;font-size:13px;text-align:center;font-weight:600;margin-bottom:10px;position:relative}
+  .urgency .timer{color:#ffd9e0;font-variant-numeric:tabular-nums}
+  .xtag{position:absolute;top:-9px;right:-4px;background:var(--cyan);color:#001518;font-size:10px;font-weight:800;border-radius:8px;padding:2px 7px;display:none;cursor:pointer;z-index:5}
+  .xray-on .xtag{display:inline-block}
+  .machine{background:linear-gradient(180deg,#232c4d,#141b30);border:2px solid #35406b;border-radius:18px;padding:16px;position:relative}
+  .machine-name{text-align:center;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:2px;margin-bottom:10px}
+  .reels{display:flex;gap:8px;justify-content:center}
+  .reel{flex:1;aspect-ratio:.9;background:#0d1224;border:2px solid #2c3554;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden}
+  .reel.spin{animation:blurspin .09s linear infinite}
+  @keyframes blurspin{0%{filter:blur(0)}50%{filter:blur(2px);transform:translateY(-3px)}100%{filter:blur(0)}}
+  .result-msg{text-align:center;min-height:46px;padding:8px 4px 0;font-size:16px;font-weight:800}
+  .result-msg .sub{display:block;font-size:12px;font-weight:500;color:var(--dim);margin-top:2px}
+  .win{color:var(--gold);animation:pulseWin .5s ease 3}
+  .nearmiss{color:var(--cyan)}
+  .lose{color:var(--dim)}
+  @keyframes pulseWin{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  .flash{animation:flashbg .4s ease 2}
+  @keyframes flashbg{50%{box-shadow:0 0 40px rgba(245,197,66,.65)}}
+  .paytable{text-align:center;font-size:11px;color:var(--dim);margin-top:9px;line-height:1.5;border-top:1px dashed #2c3554;padding-top:8px}
+  .paytable b{color:var(--gold)}
+  .bets{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px}
+  .bet{flex:1 1 28%;min-width:0;padding:10px 0;border-radius:10px;border:1px solid #2c3554;background:var(--panel);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;position:relative}
+  .bet.sel{border-color:var(--gold);color:var(--gold);background:#2a2410}
+  .bet.allin{flex:1 1 100%;border-color:#5c2b38;color:#ff8fa3}
+  .bet.allin.sel{border-color:var(--red);color:var(--red);background:#2a1017}
+  .spin-btn{margin-top:10px;background:linear-gradient(135deg,#f5c542,#e8963a);color:#1a1200;font-size:19px;padding:16px}
+  .spin-btn:disabled{opacity:.55}
+  .footer-actions{display:flex;gap:8px;margin-top:12px}
+  .footer-actions .btn{margin-top:0;padding:11px;font-size:13.5px}
+  .xray-live{display:none;background:rgba(62,224,232,.08);border:1px dashed var(--cyan);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--cyan);margin-top:10px;line-height:1.5}
+  .xray-on .xray-live{display:block}
+  .overlay{position:fixed;inset:0;background:rgba(4,7,15,.82);display:none;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel2);border-top:3px solid var(--cyan);border-radius:18px 18px 0 0;padding:20px 18px 22px;width:100%;max-width:440px;max-height:85dvh;overflow-y:auto;animation:slideUp .3s ease}
+  @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+  .modal.gold-modal{border-top-color:var(--gold)}
+  .insight-tag{display:inline-block;background:var(--cyan);color:#001518;font-size:11px;font-weight:800;border-radius:8px;padding:3px 10px;margin-bottom:10px;letter-spacing:.5px}
+  .modal h2{font-size:19px;margin-bottom:8px;line-height:1.3}
+  .modal p{font-size:14.5px;line-height:1.6;color:#c6cde0;margin-bottom:10px}
+  .modal .evidence{font-size:12px;color:var(--dim);border-left:3px solid var(--cyan);padding:6px 10px;background:rgba(62,224,232,.05);border-radius:0 8px 8px 0;line-height:1.5;margin-bottom:12px}
+  .modal .pts{color:var(--cyan);font-weight:800;font-size:13px;text-align:center;margin-bottom:6px}
+  .retiro-monto{display:block;text-align:center;font-size:34px;font-weight:800;color:var(--green);margin:6px 0 12px}
+  .debrief h1{font-size:23px;margin-top:8px}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .stat{background:var(--panel);border:1px solid #26304f;border-radius:12px;padding:12px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800}
+  .stat .l{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.3}
+  .stat .v.red{color:var(--red)} .stat .v.cy{color:var(--cyan)} .stat .v.gd{color:var(--gold)}
+  .reveal{background:var(--panel);border:1px solid #26304f;border-radius:12px;padding:13px 14px;margin-bottom:9px;font-size:13.5px;line-height:1.55}
+  .reveal b{color:var(--cyan)}
+  .reveal.warn b{color:var(--red)}
+  .reveal.good{border-color:#2b5c3f} .reveal.good b{color:var(--green)}
+  .sectionT{font-size:13px;font-weight:800;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 8px}
+  .lucidez-final{text-align:center;background:linear-gradient(135deg,#123a44,#141b30);border:1px solid var(--cyan);border-radius:14px;padding:16px;margin:10px 0}
+  .lucidez-final .big{font-size:30px;font-weight:800;color:var(--cyan)}
+  .trapgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 6px}
+  .trapitem{border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.4;cursor:pointer;border:1px solid #26304f;background:var(--panel)}
+  .trapitem .tn{font-weight:800;font-size:13px;display:block;margin-bottom:3px}
+  .trapitem .td{color:var(--dim);font-size:11px}
+  .trapitem .ts{display:block;font-size:11px;margin-top:5px;font-weight:700}
+  .trapitem.found{border-color:#2b5c3f} .trapitem.found .tn,.trapitem.found .ts{color:var(--green)}
+  .trapitem.missed{border-color:#5c2b38} .trapitem.missed .ts{color:var(--red)}
+  .trapitem.revealed{border-color:#1d5a60} .trapitem.revealed .tn,.trapitem.revealed .ts{color:var(--cyan)}
+  /* contador de impacto */
+  .impacto{background:linear-gradient(135deg,#3a1220,#141b30);border:1px solid var(--red);border-radius:14px;padding:15px;margin-bottom:9px}
+  .impacto .intro{font-size:13.5px;line-height:1.55;margin-bottom:12px}
+  .impacto .intro b{color:var(--gold)}
+  .ifila{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px dashed #5c2b38;padding:9px 0}
+  .ifila .il{font-size:12px;color:var(--dim)}
+  .ifila .iv{font-size:19px;font-weight:800;color:var(--red);white-space:nowrap}
+  .impacto .cierre{font-size:12.5px;color:#c6cde0;line-height:1.55;margin-top:11px;border-top:1px dashed #5c2b38;padding-top:11px}
+  .refs{margin-top:4px}
+  .ref{font-size:11.5px;line-height:1.5;color:var(--dim);margin-bottom:9px}
+  .ref a{color:var(--cyan);text-decoration:none;word-break:break-word}
+  .resources{font-size:12.5px;color:var(--dim);line-height:1.6}
+  #toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);padding:9px 16px;border-radius:24px;font-size:12.5px;font-weight:700;z-index:90;display:none;max-width:92%;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="toast"></div>
+
+  <!-- INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="logo">🎰</div>
+    <span class="chip" data-t="casinoChip"></span>
+    <h1 data-t="casinoTitulo" data-t-html></h1>
+    <div class="subtitle" data-t="casinoSub"></div>
+    <div class="card" data-t="casinoIntro1" data-t-html></div>
+    <div class="card cyanb" data-t="casinoIntro2" data-t-html></div>
+    <button class="btn btn-gold" onclick="startGame()" data-t="casinoBtnEntrar"></button>
+    <button class="btn btn-ghost" onclick="volverModulos()" data-t="volverModulos"></button>
+    <div class="disclaimer" data-t="casinoDisclaimer"></div>
+  </section>
+
+  <!-- JUEGO -->
+  <section class="screen" id="screen-game">
+    <div class="topbar">
+      <button class="backbtn" onclick="volverModulos()" data-t-title="volverTitulo">←</button>
+      <div class="balance"><small data-t="saldoVirtual"></small><span id="balance">$40.000</span></div>
+      <div>
+        <div class="lucidez">🔍 <span id="lucidez">0</span> <span data-t="pts"></span></div>
+        <div class="toggles">
+          <div class="tg" id="sndToggle" onclick="toggleSonido()"></div>
+          <div class="tg" id="xrayToggle" onclick="toggleXray()"></div>
+        </div>
+      </div>
+    </div>
+    <div class="urgency" id="urgency">
+      <span data-t="bonoUrgencia"></span> <span class="timer" id="timer">04:59</span>
+      <span class="xtag" onclick="showInsight('urgency')" data-t="rayosX"></span>
+    </div>
+    <div class="machine" id="machine">
+      <div class="machine-name" data-t="maquinaNombre"></div>
+      <div class="reels"><div class="reel" id="r0">❔</div><div class="reel" id="r1">❔</div><div class="reel" id="r2">❔</div></div>
+      <div class="result-msg" id="resultMsg"><span class="sub" data-t="eligeApuesta"></span></div>
+      <div class="paytable" data-t="tablaPagos" data-t-html></div>
+    </div>
+    <div class="bets" id="bets">
+      <button class="bet" data-v="500" onclick="setBet(500,this)">$500</button>
+      <button class="bet" data-v="1000" onclick="setBet(1000,this)">$1.000</button>
+      <button class="bet" data-v="2500" onclick="setBet(2500,this)">$2.500</button>
+      <button class="bet sel" data-v="5000" onclick="setBet(5000,this)">$5.000<span class="xtag" style="top:-10px" onclick="event.stopPropagation();showInsight('defaults')" data-t="rayosX"></span></button>
+      <button class="bet allin" data-v="all" onclick="setBet('all',this)" data-t="apostarTodo"></button>
+    </div>
+    <button class="btn spin-btn" id="spinBtn" onclick="spin()" data-t="girarBtn"></button>
+    <div class="xray-live" data-t="xrayVivo" data-t-html></div>
+    <div class="footer-actions">
+      <button class="btn btn-ghost" onclick="tryWithdraw()" data-t="retirarDinero"></button>
+      <button class="btn btn-ghost" onclick="endGame()" data-t="salirInforme"></button>
+    </div>
+  </section>
+
+  <!-- INFORME -->
+  <section class="screen debrief" id="screen-debrief">
+    <div style="text-align:center;font-size:36px;margin-top:8px">🔍</div>
+    <h1 style="text-align:center" data-t="informeTitulo" data-t-html></h1>
+    <div class="statgrid" id="statgrid"></div>
+    <div id="reveals"></div>
+    <div class="sectionT" data-t="seccionImpacto"></div>
+    <div id="impacto"></div>
+    <div class="lucidez-final">
+      <div style="font-size:12px;color:var(--dim);letter-spacing:1px" data-t="puntosLucidez"></div>
+      <div class="big" id="finalLucidez"></div>
+      <div style="font-size:13px;color:#c6cde0" id="lucidezMsg"></div>
+    </div>
+    <div class="sectionT" data-t="seccionTrampas"></div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:8px" data-t="tocaTrampa"></div>
+    <div class="trapgrid" id="trapGrid"></div>
+    <div class="sectionT" data-t="seccionChile"></div>
+    <div class="reveal warn" data-t="datoChile" data-t-html></div>
+    <div id="bloquePerfil"></div>
+    <div class="sectionT" data-t="seccionAyuda"></div>
+    <div class="resources" id="ayuda"></div>
+    <div class="sectionT" data-t="seccionRefs"></div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:10px" data-t="refsIntro"></div>
+    <div class="refs">
+      <div class="ref">Clark, L., Lawrence, A. J., Astley-Jones, F., &amp; Gray, N. (2009). Gambling near-misses enhance motivation to gamble and recruit win-related brain circuitry. <i>Neuron, 61</i>(3), 481–490. <a href="https://doi.org/10.1016/j.neuron.2008.12.031" target="_blank">doi.org/10.1016/j.neuron.2008.12.031</a></div>
+      <div class="ref">Barton, K. R., et al. (2017). The effect of losses disguised as wins and near misses in electronic gaming machines: A systematic review. <i>Journal of Gambling Studies, 33</i>(4), 1241–1260. <a href="https://doi.org/10.1007/s10899-017-9688-0" target="_blank">doi.org/10.1007/s10899-017-9688-0</a></div>
+      <div class="ref">Dixon, M. J., Harrigan, K. A., Sandhu, R., Collins, K., &amp; Fugelsang, J. A. (2010). Losses disguised as wins in modern multi-line video slot machines. <i>Addiction, 105</i>(10), 1819–1824. <a href="https://doi.org/10.1111/j.1360-0443.2010.03050.x" target="_blank">doi.org/10.1111/j.1360-0443.2010.03050.x</a></div>
+      <div class="ref">Kassinove, J. I., &amp; Schare, M. L. (2001). Effects of the "near miss" and the "big win" on persistence at slot machine gambling. <i>Psychology of Addictive Behaviors, 15</i>(2), 155–158. <a href="https://doi.org/10.1037/0893-164X.15.2.155" target="_blank">doi.org/10.1037/0893-164X.15.2.155</a></div>
+      <div class="ref">Griffiths, M. D. (1993). Fruit machine gambling: The importance of structural characteristics. <i>Journal of Gambling Studies, 9</i>(2), 101–120. <a href="https://doi.org/10.1007/BF01014863" target="_blank">doi.org/10.1007/BF01014863</a></div>
+      <div class="ref">Harrigan, K. A., &amp; Dixon, M. (2009). PAR Sheets, probabilities, and slot machine play. <i>Journal of Gambling Issues, 23</i>, 81–110. <a href="https://cdspress.ca/wp-content/uploads/2022/08/Kevin-A.-Harrigan-Mike-Dixon-.pdf" target="_blank">PDF</a></div>
+      <div class="ref">Newall, P. W. S., et al. (2025). Sludge, dark patterns and dark nudges: A taxonomy of online gambling platforms' deceptive design features. <i>Addiction</i>. <a href="https://doi.org/10.1111/add.70085" target="_blank">doi.org/10.1111/add.70085</a></div>
+      <div class="ref">Hing, N., Russell, A. M. T., Thomas, A., et al. (2019). Wagering advertisements and inducements. <i>Journal of Gambling Studies, 35</i>, 793–811. <a href="https://doi.org/10.1007/s10899-018-09823-y" target="_blank">doi.org/10.1007/s10899-018-09823-y</a></div>
+      <div class="ref">Skinner, B. F. (1953). <i>Science and Human Behavior</i>. Macmillan.</div>
+      <div class="ref">Schüll, N. D. (2012). <i>Addiction by Design: Machine Gambling in Las Vegas</i>. Princeton University Press. <a href="https://press.princeton.edu/books/paperback/9780691160887/addiction-by-design" target="_blank">Link</a></div>
+      <div class="ref">Williams, R. J., Wood, R. T., &amp; Currie, S. R. (2010). Stacked Deck: An effective, school-based program for the prevention of problem gambling. <i>Journal of Primary Prevention, 31</i>(3), 109–125. <a href="https://doi.org/10.1007/s10935-010-0212-x" target="_blank">doi.org/10.1007/s10935-010-0212-x</a></div>
+      <div class="ref">Roozenbeek, J., &amp; van der Linden, S. (2019). Fake news game confers psychological resistance against online misinformation. <i>Palgrave Communications, 5</i>, 65. <a href="https://doi.org/10.1057/s41599-019-0279-9" target="_blank">doi.org/10.1057/s41599-019-0279-9</a></div>
+      <div class="ref">American Psychiatric Association (2013). <i>DSM-5</i>. <a href="https://doi.org/10.1176/appi.books.9780890425596" target="_blank">doi.org/10.1176/appi.books.9780890425596</a></div>
+      <div class="ref">Ferris, J., &amp; Wynne, H. (2001). <i>The Canadian Problem Gambling Index: Final Report</i>. CCSA.</div>
+    </div>
+    <button class="btn btn-green" style="margin-top:16px" onclick="terminarYElegir()" data-t="btnTerminar"></button>
+    <button class="btn btn-cyan" onclick="backToGame()" data-t="btnVolverCasino"></button>
+    <button class="btn btn-ghost" onclick="location.reload()" data-t="btnReiniciar"></button>
+    <div class="disclaimer" data-t="prototipo"></div>
+  </section>
+
+  <!-- MODALES -->
+  <div class="overlay" id="insightOverlay"><div class="modal">
+    <span class="insight-tag" data-t="trampaDescubierta"></span>
+    <h2 id="insTitle"></h2><p id="insBody"></p>
+    <div class="evidence" id="insEvidence"></div><div class="pts" id="insPts"></div>
+    <button class="btn btn-cyan" onclick="closeInsight()" data-t="entendido"></button>
+  </div></div>
+
+  <div class="overlay" id="bonusOverlay"><div class="modal gold-modal">
+    <span class="insight-tag" style="background:var(--gold)" data-t="ofertaEspecial"></span>
+    <h2 data-t="bonoTitulo" data-t-html></h2>
+    <p data-t="bonoTexto"></p>
+    <p style="font-size:10px;color:#5a627a;line-height:1.4" data-t="bonoLetraChica"></p>
+    <button class="btn btn-gold" onclick="acceptBonus()" data-t="bonoAceptar"></button>
+    <button class="btn btn-ghost" onclick="declineBonus()" data-t="bonoRechazar"></button>
+  </div></div>
+
+  <div class="overlay" id="withdrawOverlay"><div class="modal gold-modal" id="withdrawModal"></div></div>
+
+  <div class="overlay" id="retiroOverlay"><div class="modal" style="border-top-color:var(--green)">
+    <span class="insight-tag" style="background:var(--green)" data-t="retiroCompletado"></span>
+    <h2 data-t="retiroTitulo" data-t-html></h2>
+    <span class="retiro-monto" id="retiroMonto"></span>
+    <p data-t="retiroP1" data-t-html></p>
+    <p data-t="retiroP2" data-t-html></p>
+    <button class="btn btn-cyan" onclick="verTrampaRetiro()" data-t="retiroVerTrampa"></button>
+    <button class="btn btn-green" onclick="terminarTrasRetiro()" data-t="retiroTerminar"></button>
+  </div></div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="sonido.js"></script>
+<script>
+const REGISTRO_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+const MODULO = 'casino', DEPOSITO = 20000, MIN_BET = 500, TOTAL_INSIGHTS = 8;
+
+const S = { balance:40000, startBalance:40000, bet:5000, betMode:'fixed', spins:0, wagered:0,
+  nearMisses:0, ldws:0, celebrations:0, wins:0, lucidez:0, insightsSeen:{}, foundInGame:{},
+  spinning:false, bonusShown:false, bonusAccepted:false, retirado:0, retiroHecho:false, history:[] };
+
+const SYM=['🍒','🍋','💎','7️⃣','⭐','🔔'], SYM_NC=['🍋','💎','7️⃣','⭐','🔔'], SYM_W=['🍋','💎','⭐','🔔'];
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+const fmt = n => '$' + Math.round(n).toLocaleString(IDIOMA === 'en' ? 'en-US' : 'es-CL');
+
+/* ---------- telemetría ---------- */
+const T = { t0:Date.now(), eventos:[], xrayPrimeraMs:'', xrayMsTotal:0, xrayDesde:null,
+  tarjetas:[], tarjetaAbierta:null, volviBuscar:0, clicsRef:0, retiroPasoMax:0, allIns:0, enviado:false };
+function participante(){ try{ return JSON.parse(sessionStorage.getItem('participante'))||{}; }catch(e){ return {}; } }
+function marcarXray(a){ if(a){ if(T.xrayPrimeraMs==='') T.xrayPrimeraMs=Date.now()-T.t0; T.xrayDesde=Date.now(); }
+  else if(T.xrayDesde){ T.xrayMsTotal += Date.now()-T.xrayDesde; T.xrayDesde=null; } }
+function calcularIndices(){
+  const ev=T.eventos, n=ev.length, r={jugadas:n};
+  r.apuestaMedia = n ? Math.round(ev.reduce((a,e)=>a+e.monto,0)/n) : 0;
+  r.apuestaPrimera = n?ev[0].monto:''; r.apuestaUltima = n?ev[n-1].monto:'';
+  r.escalamiento = (n>1&&ev[0].monto)? +(ev[n-1].monto/ev[0].monto).toFixed(2):'';
+  let tP=0,sP=0,tG=0,sG=0;
+  for(let i=1;i<n;i++){ const perdio = ev[i-1].resultado!=='win'&&ev[i-1].resultado!=='bigwin';
+    const subio = ev[i].monto>ev[i-1].monto;
+    if(perdio){tP++; if(subio)sP++;} else {tG++; if(subio)sG++;} }
+  r.pctSubeTrasPerdida = tP? +(100*sP/tP).toFixed(1):''; r.pctSubeTrasGanancia = tG? +(100*sG/tG).toFixed(1):'';
+  r.indiceChasing = (r.pctSubeTrasPerdida!==''&&r.pctSubeTrasGanancia!=='')? +(r.pctSubeTrasPerdida-r.pctSubeTrasGanancia).toFixed(1):'';
+  const lN=[],lP=[],lG=[],td=[];
+  for(let i=1;i<n;i++){ const lat=(ev[i].t-ev[i-1].t)/1000;
+    if(lat>0&&lat<300){ td.push(lat); const res=ev[i-1].resultado;
+      if(res==='nearmiss') lN.push(lat); else if(res==='win'||res==='bigwin') lG.push(lat); else lP.push(lat); } }
+  const media=a=>a.length? +(a.reduce((x,y)=>x+y,0)/a.length).toFixed(2):'';
+  r.latMediaSeg=media(td); r.latTrasNearMiss=media(lN); r.latTrasPerdida=media(lP); r.latTrasGanancia=media(lG);
+  r.efectoNearMiss=(r.latTrasNearMiss!==''&&r.latTrasPerdida!=='')? +(r.latTrasPerdida-r.latTrasNearMiss).toFixed(2):'';
+  return r;
+}
+function enviarTelemetria(completo){
+  if(T.enviado) return; T.enviado=true; marcarXray(false);
+  const p=participante(), i=calcularIndices(), l=T.tarjetas;
+  const datos={ tipo:'juego', modulo:MODULO, pid:p.pid||'', edad:p.edad||'', pais:p.pais||'', paisNombre:p.paisNombre||'', estudios:p.estudios||'', perfil:p.perfil||'',
+    idioma:IDIOMA, fuente:p.fuente||'directo',
+    duracionSeg:Math.round((Date.now()-T.t0)/1000), completo:completo?'si':'no',
+    jugadas:i.jugadas, apostadoTotal:S.wagered,
+    perdidaNeta:Math.max(0,S.startBalance+(S.bonusAccepted?20000:0)-S.balance-S.retirado),
+    apuestaMedia:i.apuestaMedia, apuestaPrimera:i.apuestaPrimera, apuestaUltima:i.apuestaUltima,
+    escalamiento:i.escalamiento, indiceChasing:i.indiceChasing,
+    pctSubeTrasPerdida:i.pctSubeTrasPerdida, pctSubeTrasGanancia:i.pctSubeTrasGanancia,
+    latMediaSeg:i.latMediaSeg, latTrasNearMiss:i.latTrasNearMiss, latTrasPerdida:i.latTrasPerdida,
+    latTrasGanancia:i.latTrasGanancia, efectoNearMiss:i.efectoNearMiss,
+    allIns:T.allIns, aceptoBono:S.bonusAccepted?'si':'no',
+    intentoRetiro:T.retiroPasoMax>0?'si':'no', retiroPasoMax:T.retiroPasoMax,
+    extra1:S.nearMisses, extra2:S.ldws, extra3:S.celebrations,
+    lucidez:S.lucidez,
+    trampasDescubiertas:Object.keys(S.foundInGame).filter(k=>k!=='chasing').length,
+    trampasReveladas:Object.keys(S.insightsSeen).filter(k=>k!=='chasing'&&!S.foundInGame[k]).length,
+    trampasTotal:TOTAL_INSIGHTS,
+    pctDescubiertas:+(100*Object.keys(S.foundInGame).filter(k=>k!=='chasing').length/TOTAL_INSIGHTS).toFixed(1),
+    usoRayosX:T.xrayPrimeraMs===''?'no':'si',
+    xrayLatenciaSeg:T.xrayPrimeraMs===''?'':Math.round(T.xrayPrimeraMs/1000),
+    xrayTiempoSeg:Math.round(T.xrayMsTotal/1000), tarjetasAbiertas:l.length,
+    lecturaMediaSeg:l.length? +(l.reduce((a,b)=>a+b,0)/l.length/1000).toFixed(1):'',
+    lecturaMinSeg:l.length? +(Math.min.apply(null,l)/1000).toFixed(1):'',
+    volvioABuscar:T.volviBuscar, clicsReferencias:T.clicsRef, sonido: Snd.estaActivo()?'si':'no' };
+  try{ if(navigator.sendBeacon && REGISTRO_URL.indexOf('PEGA_AQUI')<0){
+    navigator.sendBeacon(REGISTRO_URL, new URLSearchParams(datos)); } }catch(e){}
+}
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'&&T.eventos.length) enviarTelemetria(false); });
+window.addEventListener('pagehide',function(){ if(T.eventos.length) enviarTelemetria(false); });
+document.addEventListener('click',function(e){ const a=e.target.closest?e.target.closest('.ref a'):null; if(a) T.clicsRef++; });
+
+/* ---------- trampas ---------- */
+const CLAVES=['luck','nearmiss','ldw','reinforcement','defaults','urgency','bonus','withdraw'];
+function insight(k){ return {t:t(k+'_t'), b:t(k+'_b'), e:t(k+'_e')}; }
+
+/* ---------- UI ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+let toastT;
+function toast(m){ const el=document.getElementById('toast'); el.innerHTML=m; el.style.display='block';
+  clearTimeout(toastT); toastT=setTimeout(()=>el.style.display='none',3000); }
+let xray=false;
+function toggleXray(){ xray=!xray;
+  document.getElementById('app').classList.toggle('xray-on',xray);
+  document.getElementById('xrayToggle').classList.toggle('on',xray);
+  pintarToggles(); marcarXray(xray); if(xray) toast(t('xrayOn'));
+}
+let sonidoOn=true;
+function toggleSonido(){ sonidoOn=!sonidoOn; Snd.silenciar(!sonidoOn); if(sonidoOn) Snd.activar(); pintarToggles(); }
+function pintarToggles(){
+  document.getElementById('sndToggle').textContent = sonidoOn ? t('sonidoOn') : t('sonidoOff');
+  document.getElementById('sndToggle').classList.toggle('on', sonidoOn);
+  document.getElementById('xrayToggle').innerHTML = '👁 ' + t('rayosX') + ' <b>' + (xray?'ON':'OFF') + '</b>';
+}
+function updateBalance(){ document.getElementById('balance').textContent=fmt(S.balance);
+  document.getElementById('lucidez').textContent=S.lucidez; }
+function actualizarSaldoUI(){ updateBalance(); }
+function volverModulos(){ location.href='index.html'; }
+function terminarYElegir(){ location.href='index.html?jugado=casino'; }
+function startGame(){ Snd.activar(); show('screen-game'); startTimer(); }
+
+let secs=299;
+function startTimer(){ setInterval(function(){ secs--;
+  if(secs<=0){ secs=299; if(xray) toast(t('xrayContador')); }
+  const m=String(Math.floor(secs/60)).padStart(2,'0'), s=String(secs%60).padStart(2,'0');
+  document.getElementById('timer').textContent=m+':'+s; },1000); }
+
+function setBet(v,el){
+  S.betMode = (v==='all')?'all':'fixed';
+  S.bet = (v==='all')? Math.max(MIN_BET,S.balance) : v;
+  document.querySelectorAll('.bet').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  if(v==='all'){ T.allIns++; Snd.alerta(); toast(t('apostarasTodo')+' '+fmt(S.balance)); }
+}
+
+/* ---------- motor ---------- */
+function decideOutcome(){
+  if(S.spins===1) return {type:'win',mult:2.5};
+  if(S.spins===2) return {type:'bigwin',mult:10};
+  const r=Math.random();
+  if(r<0.02) return {type:'bigwin',mult:10};
+  if(r<0.12) return {type:'win',mult:2.5};
+  if(r<0.27) return {type:'ldw',mult:0.5};
+  if(r<0.60) return {type:'nearmiss',mult:0};
+  return {type:'lose',mult:0};
+}
+function reelsFor(o){
+  switch(o.type){
+    case 'bigwin': return ['7️⃣','7️⃣','7️⃣'];
+    case 'win': { const s=rnd(SYM_W); return [s,s,s]; }
+    case 'ldw': { const x=rnd(SYM_NC); return Math.random()<0.5?['🍒','🍒',x]:['🍒',x,'🍒']; }
+    case 'nearmiss': { const s=rnd(SYM_NC); let x; do{x=rnd(SYM_NC);}while(x===s); return [s,s,x]; }
+    default: { let a,b,c; do{ a=rnd(SYM); b=rnd(SYM); c=rnd(SYM); }
+      while(a===b||b===c||[a,b,c].filter(x=>x==='🍒').length>=2); return [a,b,c]; }
+  }
+}
+function spin(){
+  if(S.spinning) return;
+  if(S.retiroHecho){ toast(t('yaRetiraste')); endGame(); return; }
+  if(S.betMode==='all') S.bet=S.balance;
+  if(S.balance<MIN_BET){ maybeBonusOrEnd(); return; }
+  if(S.bet>S.balance) S.bet=S.balance;
+  S.spinning=true; S.spins++; S.balance-=S.bet; S.wagered+=S.bet; updateBalance();
+  T.eventos.push({t:Date.now(), monto:S.bet, resultado:null});
+  const last2=S.history.slice(-2);
+  if(last2.length===2 && last2.every(h=>h.net<0) && S.bet>last2[1].bet && !S.insightsSeen['chasing'])
+    setTimeout(()=>showInsight('chasing'),2400);
+  const outcome=decideOutcome(), finals=reelsFor(outcome);
+  const reels=[0,1,2].map(i=>document.getElementById('r'+i));
+  document.getElementById('resultMsg').innerHTML='<span class="sub">'+t('girando')+'</span>';
+  document.getElementById('spinBtn').disabled=true;
+  Snd.girar();
+  reels.forEach(r=>r.classList.add('spin'));
+  const stopped=[false,false,false];
+  const anim=setInterval(()=>reels.forEach((r,i)=>{ if(!stopped[i]) r.textContent=rnd(SYM); }),80);
+  [700,1250,outcome.type==='nearmiss'?2100:1750].forEach(function(ms,i){
+    setTimeout(function(){
+      stopped[i]=true; reels[i].classList.remove('spin'); reels[i].textContent=finals[i]; Snd.rodillo();
+      if(i===2){ clearInterval(anim); reels.forEach((r,j)=>r.textContent=finals[j]); settle(outcome); }
+    },ms);
+  });
+}
+function settle(o){
+  const msg=document.getElementById('resultMsg'), machine=document.getElementById('machine');
+  const payout=Math.round(S.bet*o.mult), net=payout-S.bet;
+  const ult=T.eventos[T.eventos.length-1]; if(ult) ult.resultado=o.type;
+  S.history.push({type:o.type,bet:S.bet,net:net});
+  if(payout>0) S.balance+=payout;
+  updateBalance();
+  switch(o.type){
+    case 'bigwin':
+      S.wins++; S.celebrations++; machine.classList.add('flash'); Snd.granPremio();
+      msg.innerHTML=t('megaPremio')+fmt(payout)+'<span class="sub">'+t('estasEncendido')+'</span>';
+      msg.className='result-msg win';
+      if(S.spins===2) setTimeout(()=>showInsight('luck'),1600);
+      break;
+    case 'win':
+      S.wins++; S.celebrations++; machine.classList.add('flash'); Snd.festejo();
+      msg.innerHTML=t('ganaste')+fmt(payout); msg.className='result-msg win';
+      break;
+    case 'ldw':
+      S.ldws++; S.celebrations++; machine.classList.add('flash'); Snd.festejo();
+      msg.innerHTML=t('ganaste')+fmt(payout)+'<span class="sub">'+t('lineaPremiada')+'</span>';
+      msg.className='result-msg win';
+      if(!S.insightsSeen['ldw']) setTimeout(()=>showInsight('ldw'),1500);
+      else if(xray) toast(t('xrayLDW').replace('{a}',fmt(S.bet)).replace('{b}',fmt(payout)).replace('{c}',fmt(-net)));
+      else if(sonidoOn) toast(t('sonoFestejo'));
+      break;
+    case 'nearmiss':
+      S.nearMisses++; Snd.casi();
+      msg.innerHTML=t('tanCerca')+'<span class="sub">'+t('proximoBueno')+'</span>';
+      msg.className='result-msg nearmiss';
+      if(!S.insightsSeen['nearmiss']) setTimeout(()=>showInsight('nearmiss'),1500);
+      else if(xray) toast(t('xrayCasi')+' '+fmt(S.bet));
+      break;
+    default:
+      Snd.perder();
+      msg.innerHTML=t('perdiste')+' '+fmt(S.bet)+'<span class="sub">'+t('sigueIntentando')+'</span>';
+      msg.className='result-msg lose';
+  }
+  setTimeout(()=>machine.classList.remove('flash'),900);
+  if(S.spins===6 && !S.insightsSeen['reinforcement']) setTimeout(()=>showInsight('reinforcement'),1800);
+  S.spinning=false; document.getElementById('spinBtn').disabled=false;
+  if(S.betMode==='all') S.bet=S.balance;
+  if(S.balance<MIN_BET) maybeBonusOrEnd();
+}
+function maybeBonusOrEnd(){
+  if(S.balance<MIN_BET){
+    if(!S.bonusShown){ S.bonusShown=true; Snd.alerta(); document.getElementById('bonusOverlay').classList.add('open'); }
+    else endGame();
+  } else if(S.balance<S.bet){ toast(t('saldoInsuf')); }
+}
+function acceptBonus(){
+  document.getElementById('bonusOverlay').classList.remove('open');
+  S.bonusAccepted=true; S.balance+=20000; Snd.moneda(); updateBalance();
+  setTimeout(()=>showInsight('bonus'),700);
+}
+function declineBonus(){
+  document.getElementById('bonusOverlay').classList.remove('open');
+  if(!S.insightsSeen['bonus']){
+    showInsight('bonus');
+    const btn=document.querySelector('#insightOverlay .btn');
+    btn.onclick=function(){ closeInsight(); btn.onclick=closeInsight; endGame(); };
+  } else endGame();
+}
+/* ---------- retiro ---------- */
+let wstep=0;
+function tryWithdraw(){ wstep=0; renderWithdraw(); document.getElementById('withdrawOverlay').classList.add('open'); }
+function renderWithdraw(){
+  const m=document.getElementById('withdrawModal');
+  if(wstep<4){
+    if(wstep+1>T.retiroPasoMax) T.retiroPasoMax=wstep+1;
+    const n=wstep+1;
+    let p=t('retiro'+n+'p');
+    if(n===3) p=p.replace('{monto}', fmt(600000));
+    m.innerHTML='<span class="insight-tag" style="background:var(--gold)">'+t('solicitudRetiro')+'</span>'
+      +'<h2>'+t('retiro'+n+'t')+'</h2><p>'+p+'</p>'
+      +'<button class="btn btn-gold" onclick="wstep++;renderWithdraw()">'+t('retiro'+n+'b')+'</button>'
+      +'<button class="btn btn-ghost" onclick="document.getElementById(\'withdrawOverlay\').classList.remove(\'open\')">'+t('seguirJugando')+'</button>';
+  } else { document.getElementById('withdrawOverlay').classList.remove('open'); completarRetiro(); }
+}
+function completarRetiro(){
+  S.retirado=S.balance; S.balance=0; S.retiroHecho=true; T.retiroPasoMax=5;
+  actualizarSaldoUI(); Snd.exito();
+  document.getElementById('retiroMonto').textContent=fmt(S.retirado);
+  document.getElementById('retiroOverlay').classList.add('open');
+}
+function verTrampaRetiro(){ document.getElementById('retiroOverlay').classList.remove('open'); showInsight('withdraw'); }
+function terminarTrasRetiro(){ document.getElementById('retiroOverlay').classList.remove('open'); endGame(); }
+
+/* ---------- tarjetas ---------- */
+function showInsight(k, desdeInforme){
+  const ins=insight(k); if(!ins.t) return;
+  const primera=!S.insightsSeen[k];
+  if(primera){ S.insightsSeen[k]=true;
+    if(!desdeInforme){ S.foundInGame[k]=true; S.lucidez+=100; Snd.moneda(); }
+    updateBalance(); }
+  document.getElementById('insTitle').textContent=ins.t;
+  document.getElementById('insBody').textContent=ins.b;
+  document.getElementById('insEvidence').textContent='📚 '+ins.e;
+  document.getElementById('insPts').textContent =
+    (primera&&!desdeInforme)? t('masPuntos') : (S.foundInGame[k]? t('yaDescubierta') : t('reveladaInforme'));
+  document.getElementById('insightOverlay').classList.add('open');
+  T.tarjetaAbierta=Date.now();
+  if(desdeInforme) renderTrapGrid();
+}
+function closeInsight(){
+  if(T.tarjetaAbierta){ T.tarjetas.push(Date.now()-T.tarjetaAbierta); T.tarjetaAbierta=null; }
+  document.getElementById('insightOverlay').classList.remove('open');
+}
+function renderTrapGrid(){
+  document.getElementById('trapGrid').innerHTML = CLAVES.map(function(k,i){
+    const st = S.foundInGame[k]?'found':(S.insightsSeen[k]?'revealed':'missed');
+    const lbl = st==='found'? t('descubiertaJugando') : (st==='revealed'? t('reveladaEnInforme') : t('noLaViste'));
+    return '<div class="trapitem '+st+'" onclick="showInsight(\''+k+'\',true)">'
+      +'<span class="tn">'+(i+1)+'. '+t('g_'+k)+'</span>'
+      +'<span class="td">'+t('gd_'+k)+'</span><span class="ts">'+lbl+'</span></div>';
+  }).join('');
+}
+function backToGame(){
+  T.volviBuscar++;
+  if(S.balance<MIN_BET && !S.retiroHecho){ S.balance+=10000; updateBalance(); setTimeout(()=>toast(t('saldoEducativo')),400); }
+  show('screen-game');
+}
+
+/* ---------- bloque según perfil ---------- */
+function pintarBloquePerfil(g1,g2,g3,cierre){
+  const p=participante(), esAp=(p.perfil==='apoderado');
+  const ig='<a href="https://instagram.com/jimmy_exludopata" target="_blank" style="color:var(--cyan);font-weight:700;text-decoration:none">@jimmy_exludopata</a>';
+  const cont=document.getElementById('bloquePerfil');
+  if(esAp){
+    cont.innerHTML = '<div class="reveal" style="border-color:var(--cyan)">'+t('apIntro')+'</div>'
+      +'<div class="sectionT">'+t('apSeccionQue')+'</div>'
+      +'<div class="reveal good">'+t('apQue1')+'</div><div class="reveal good">'+t('apQue2')+'</div>'
+      +'<div class="reveal good">'+t('apQue3')+'</div><div class="reveal good">'+t('apQue4')+'</div>'
+      +'<div class="sectionT">'+t('apSeccionSenales')+'</div>'
+      +'<div class="reveal warn">'+t('apSenales1')+'</div><div class="reveal warn">'+t('apSenales2')+'</div>'
+      +'<div class="reveal warn">'+t('apSenales3')+'</div><div class="reveal warn">'+t('apSenales4')+'</div>'
+      +'<div class="reveal">'+t('apSenalesNota')+'</div>'
+      +'<div class="sectionT">'+t('apSeccionHablar')+'</div>'
+      +'<div class="reveal">'+t('apHablar1')+'</div><div class="reveal">'+t('apHablar2')+'</div>'
+      +'<div class="reveal">'+t('apHablar3')+'</div><div class="reveal">'+t('apHablar4')+'</div>';
+    document.getElementById('ayuda').innerHTML = t('apAyuda') + ig + t('apAyudaCierre');
+  } else {
+    cont.innerHTML = '<div class="sectionT">'+t('seccionGanas')+'</div>'
+      +'<div class="reveal good">'+t(g1)+'</div><div class="reveal good">'+t(g2)+'</div>'
+      +'<div class="reveal good">'+t(g3)+'</div>';
+    document.getElementById('ayuda').innerHTML = t('textoAyuda') + ig + t(cierre);
+  }
+}
+
+
+/* ---------- guardar para el resumen final ---------- */
+function guardarResultado(f, total, perdida){
+  try{
+    var r = JSON.parse(sessionStorage.getItem('resultados') || '{}');
+    r[MODULO] = { lucidez:S.lucidez, found:f, total:total, perdida:perdida };
+    sessionStorage.setItem('resultados', JSON.stringify(r));
+  }catch(e){}
+}
+
+/* ---------- informe ---------- */
+function stat(v,l,c){ return '<div class="stat"><div class="v '+c+'">'+v+'</div><div class="l">'+l+'</div></div>'; }
+function endGame(){
+  const perdida=Math.max(0, S.startBalance+(S.bonusAccepted?20000:0)-S.balance-S.retirado);
+  document.getElementById('statgrid').innerHTML =
+    stat(S.spins,t('stGiros'),'cy') + stat(fmt(S.wagered),t('stApostado'),'gd') +
+    stat(fmt(perdida),t('stPerdido'),'red') +
+    stat((S.wagered? Math.round(100*perdida/S.wagered):0)+'%',t('stPctCasa'),'red') +
+    stat(S.nearMisses,t('stCasi'),'cy') +
+    stat(S.celebrations,t('stCelebra').replace('{n}',S.ldws),'gd');
+  const found=Object.keys(S.foundInGame).filter(k=>k!=='chasing').length;
+  document.getElementById('finalLucidez').textContent=S.lucidez+' '+t('pts')+' · '+found+'/'+TOTAL_INSIGHTS+' '+t('trampas');
+  document.getElementById('lucidezMsg').textContent = found>=7? t('nivelMaximo') : (found>=4? t('nivelMedio') : t('nivelBajo'));
+  renderTrapGrid();
+  document.getElementById('reveals').innerHTML =
+    (S.retiroHecho? '<div class="reveal good">'+t('revelaRetiro').replace('{monto}',fmt(S.retirado))+'</div>' : '') +
+    '<div class="sectionT">'+t('seccionNoDijo')+'</div>' +
+    '<div class="reveal">'+t('revelaMotor')+'</div>' +
+    '<div class="reveal">'+t('revelaRTP')+'</div>' +
+    '<div class="reveal">'+t('revelaCasi').replace('{n}',S.nearMisses)+'</div>' +
+    '<div class="reveal">'+t('revelaDeposito')+'</div>' +
+    (S.bonusAccepted? '<div class="reveal warn">'+t('revelaBono')+'</div>' : '') +
+    '<div class="reveal">'+t('revelaLegal')+'</div>';
+  /* contador de impacto */
+  const min=Math.max(1, Math.round((Date.now()-T.t0)/60000));
+  const porHora=perdida/min*60;
+  let veces=(perdida/DEPOSITO).toFixed(1);
+  if(IDIOMA !== 'en') veces = veces.replace('.', ',');
+  document.getElementById('impacto').innerHTML =
+    '<div class="impacto"><div class="intro">'+t('impactoIntro').replace('{min}',min).replace('{perdida}',fmt(perdida))+'</div>'
+    + '<div class="ifila"><span class="il">'+t('impactoHora')+'</span><span class="iv">'+fmt(porHora)+'</span></div>'
+    + '<div class="ifila"><span class="il">'+t('impactoDia')+'</span><span class="iv">'+fmt(porHora*30)+'</span></div>'
+    + '<div class="ifila"><span class="il">'+t('impactoAnio')+'</span><span class="iv">'+fmt(porHora*365)+'</span></div>'
+    + '<div class="cierre">'+t('impactoVeces').replace('{veces}',veces)+' '+t('impactoCierre')+'</div></div>';
+  pintarBloquePerfil('gana1','gana2','gana3','ayudaCierre');
+  guardarResultado(Object.keys(S.foundInGame).filter(k=>k!=='chasing').length, TOTAL_INSIGHTS, perdida);
+  T.enviado=false; enviarTelemetria(true);
+  show('screen-debrief');
+}
+/* ---------- arranque ---------- */
+document.addEventListener('DOMContentLoaded',function(){
+  pintar(); pintarToggles(); updateBalance();
+  document.title = t('casinoChip') + ' · ' + (IDIOMA==='en'?'The House Always Wins':'La Casa Siempre Gana');
+});
+</script>
+</body>
+</html>
