@@ -278,7 +278,7 @@
 <script src="i18n.js"></script>
 <script src="sonido.js"></script>
 <script>
-const REGISTRO_URL = "https://script.google.com/macros/s/AKfycbyxpUXvNu2_pTJTJpeVB2MFdz-Hc6oPU3E_P7mWZyRKAZygIZNvUD2rKDbKKNDqRBuqQg/exec";
+const REGISTRO_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
 const MODULO='lootbox', COSTO=100, GEMA_A_PESO=10, DEPOSITO=5000, TOTAL_INSIGHTS=10, PITY_META=10;
 
 const S = { gemas:500, gastadas:0, compradoExtra:0, cajas:0, legendarias:0, duplicados:0,
@@ -478,7 +478,7 @@ function showInsight(k, desdeInforme){
     if(!desdeInforme && CLAVES.indexOf(k)>=0){ S.foundInGame[k]=true; S.lucidez+=100; Snd.moneda(); }
     updateHud(); }
   document.getElementById('insTitle').textContent=ins.t;
-  document.getElementById('insBody').textContent=ins.b;
+  document.getElementById('insBody').innerHTML=ins.b;
   document.getElementById('insEvidence').textContent='📚 '+ins.e;
   document.getElementById('insPts').textContent =
     (primera&&!desdeInforme)? t('masPuntos') : (S.foundInGame[k]? t('yaDescubierta') : t('reveladaInforme'));

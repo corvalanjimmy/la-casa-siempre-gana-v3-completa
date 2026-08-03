@@ -34,6 +34,12 @@
   .certbox{background:linear-gradient(135deg,#2a2410,#141b30);border:1px solid var(--gold);border-radius:16px;padding:16px;margin-top:8px}
   .certbox h3{font-size:15px;color:var(--gold);margin-bottom:7px}
   .certbox p{font-size:12.5px;color:#c6cde0;line-height:1.55}
+  .certbox label{display:block;font-size:11.5px;font-weight:700;color:var(--gold);margin:12px 0 6px;letter-spacing:.3px}
+  .certbox input{width:100%;background:#0d1224;border:1.5px solid #5c4a1a;border-radius:10px;padding:12px;
+                 font-size:15px;color:var(--text);outline:none;font-family:inherit}
+  .certbox input:focus{border-color:var(--gold)}
+  .certerr{display:none;color:var(--red);font-size:12px;font-weight:700;margin-top:8px;text-align:center}
+  .certprev{width:100%;border-radius:10px;margin-top:12px;display:none;border:1px solid #5c4a1a}
   .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px}
   .btn-gold{background:linear-gradient(135deg,#f5c542,#e8963a);color:#1a1200}
   .btn-ghost{background:transparent;color:var(--dim);border:1px solid #2c3554;font-weight:500;font-size:14px}
@@ -102,58 +108,101 @@ function pintarResumen(){
     + '<div class="cierre">'+t('resumenCierre2')+'</div>'
     + '<div class="frase">'+t('resumenFrase')+'</div>'
     + '<div class="certbox"><h3>'+t('certificadoTitulo')+'</h3><p>'+t('certificadoTexto')+'</p>'
+    + '<label for="certNombre">'+t('certNombrePregunta')+'</label>'
+    + '<input id="certNombre" type="text" maxlength="46" placeholder="'+t('certPhNombre')+'" autocomplete="name" oninput="previsualizar()">'
+    + '<div class="certerr" id="certErr"></div>'
+    + '<img class="certprev" id="certPrev" alt="">'
     + '<button class="btn btn-gold" onclick="descargar()" id="btnCert">'+t('certificadoBtn')+'</button></div>';
   cont.innerHTML=html;
   window.__datos = {lucidez:lucidez, found:found, total:totalTrampas, mods:hechos.length};
+  // precargar el nombre del registro, si lo hay
+  var pn = participante().nombre;
+  if(pn && document.getElementById('certNombre')){
+    document.getElementById('certNombre').value = pn;
+  }
+  cargarLogo(function(){ previsualizar(); });
 }
 
 /* ---------- certificado ---------- */
+var LOGO=null;
+function cargarLogo(listo){
+  var img=new Image();
+  img.onload=function(){ LOGO=img; listo(); };
+  img.onerror=function(){ LOGO=null; listo(); };
+  img.src='logo.png';
+}
+function nombreCert(){
+  var el=document.getElementById('certNombre');
+  var v = el ? el.value.trim().replace(/\s+/g,' ') : '';
+  return v;
+}
 function dibujarCertificado(){
-  const d=window.__datos, p=participante();
-  const nombre = (p.nombre && p.nombre.trim()) ? p.nombre.trim() : t('certAnonimo');
+  const d=window.__datos;
+  const nombre = nombreCert() || t('certAnonimo');
   const c=document.getElementById('cert'), g=c.getContext('2d');
-  const W=c.width, H=c.height;
+  const W=c.width, H=c.height, cx=W/2;
   g.fillStyle='#0a0e1a'; g.fillRect(0,0,W,H);
-  // marcos
   g.strokeStyle='#f5c542'; g.lineWidth=8; g.strokeRect(34,34,W-68,H-68);
   g.strokeStyle='#3ee0e8'; g.lineWidth=2; g.strokeRect(56,56,W-112,H-112);
-  const cx=W/2;
   g.textAlign='center';
-  g.fillStyle='#8a94ad'; g.font='bold 30px Arial'; g.fillText('🔍', cx, 150);
-  g.fillStyle='#f5c542'; g.font='bold 62px Arial';
-  g.fillText(t('certNombre'), cx, 232);
-  g.fillStyle='#8a94ad'; g.font='28px Arial';
-  g.fillText(t('certOtorga'), cx, 316);
-  g.fillStyle='#e8ecf5'; g.font='bold 66px Arial';
-  let nom=nombre; if(nom.length>28) nom=nom.slice(0,28)+'…';
-  g.fillText(nom, cx, 400);
+  // logo sobre un disco claro (el original tiene fondo blanco)
+  if(LOGO){
+    const R=98;
+    g.save();
+    g.beginPath(); g.arc(cx,168,R,0,2*Math.PI); g.closePath();
+    g.fillStyle='#ffffff'; g.fill();
+    g.strokeStyle='#f5c542'; g.lineWidth=4; g.stroke();
+    g.clip();
+    const lado=R*1.86;
+    g.drawImage(LOGO, cx-lado/2, 168-lado/2, lado, lado);
+    g.restore();
+  } else {
+    g.fillStyle='#f5c542'; g.font='bold 74px Arial'; g.fillText('🔍', cx, 192);
+  }
+  g.fillStyle='#f5c542'; g.font='bold 58px Arial';
+  g.fillText(t('certNombre'), cx, 330);
+  g.fillStyle='#8a94ad'; g.font='27px Arial';
+  g.fillText(t('certOtorga'), cx, 396);
+  // nombre, con ajuste automático de tamaño
+  let tam=64;
+  g.font='bold '+tam+'px Arial';
+  while(g.measureText(nombre).width > W-260 && tam>26){ tam-=2; g.font='bold '+tam+'px Arial'; }
+  g.fillStyle='#e8ecf5';
+  g.fillText(nombre, cx, 474);
   g.strokeStyle='#3ee0e8'; g.lineWidth=3;
-  g.beginPath(); g.moveTo(cx-280,430); g.lineTo(cx+280,430); g.stroke();
-  g.fillStyle='#c6cde0'; g.font='27px Arial';
-  g.fillText(t('certPor'), cx, 486);
-  const linea2 = t('certPor2').replace('{n}', d.found).replace('{total}', d.total);
-  g.fillText(linea2, cx, 528);
-  // puntos
-  g.fillStyle='#3ee0e8'; g.font='bold 96px Arial';
-  g.fillText(String(d.lucidez), cx, 660);
-  g.fillStyle='#8a94ad'; g.font='bold 26px Arial';
-  g.fillText(t('certPuntos'), cx, 700);
-  // frase
-  g.fillStyle='#f5c542'; g.font='italic bold 34px Arial';
-  g.fillText(t('certFrase'), cx, 792);
-  // pie
+  g.beginPath(); g.moveTo(cx-300,512); g.lineTo(cx+300,512); g.stroke();
+  g.fillStyle='#c6cde0'; g.font='26px Arial';
+  g.fillText(t('certPor'), cx, 560);
+  g.fillText(t('certPor2').replace('{n}', d.found).replace('{total}', d.total), cx, 600);
+  g.fillStyle='#3ee0e8'; g.font='bold 92px Arial';
+  g.fillText(String(d.lucidez), cx, 716);
+  g.fillStyle='#8a94ad'; g.font='bold 25px Arial';
+  g.fillText(t('certPuntos'), cx, 754);
+  g.fillStyle='#f5c542'; g.font='italic bold 32px Arial';
+  g.fillText(t('certFrase'), cx, 836);
   const hoy=new Date();
   const fecha=String(hoy.getDate()).padStart(2,'0')+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+hoy.getFullYear();
-  g.fillStyle='#5f6c8a'; g.font='23px Arial';
-  g.fillText(t('certPie'), cx, 878);
-  g.fillText(fecha + '  ·  @jimmy_exludopata', cx, 916);
+  g.fillStyle='#5f6c8a'; g.font='22px Arial';
+  g.fillText(t('certPie'), cx, 886);
+  g.fillText(fecha + '  ·  @jimmy_exludopata', cx, 922);
+}
+function previsualizar(){
+  if(!window.__datos) return;
+  dibujarCertificado();
+  const prev=document.getElementById('certPrev');
+  if(prev){ prev.src=document.getElementById('cert').toDataURL('image/png'); prev.style.display='block'; }
+  const err=document.getElementById('certErr'); if(err) err.style.display='none';
 }
 function descargar(){
+  const nom=nombreCert();
+  const err=document.getElementById('certErr');
+  if(!nom){ err.textContent=t('certErrNombre'); err.style.display='block';
+    document.getElementById('certNombre').focus(); return; }
+  err.style.display='none';
   dibujarCertificado();
-  const c=document.getElementById('cert');
   const a=document.createElement('a');
   a.download = (IDIOMA==='en'?'certificate-of-clarity':'certificado-de-lucidez')+'.png';
-  a.href = c.toDataURL('image/png');
+  a.href = document.getElementById('cert').toDataURL('image/png');
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   document.getElementById('btnCert').textContent = t('certificadoListo');
 }

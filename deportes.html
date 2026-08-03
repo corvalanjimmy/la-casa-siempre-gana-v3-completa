@@ -331,7 +331,7 @@
 <script src="i18n.js"></script>
 <script src="sonido.js"></script>
 <script>
-const REGISTRO_URL = "https://script.google.com/macros/s/AKfycbyxpUXvNu2_pTJTJpeVB2MFdz-Hc6oPU3E_P7mWZyRKAZygIZNvUD2rKDbKKNDqRBuqQg/exec";
+const REGISTRO_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
 const MODULO='jimmybet', DEPOSITO=10000, MIN_STAKE=500, MARGIN=0.12, TOTAL_INSIGHTS=10;
 
 const S = { balance:20000, startBalance:20000, stake:5000, stakeMode:'fixed', bets:0, wagered:0,
@@ -694,7 +694,7 @@ function showInsight(k, desdeInforme){
     if(!desdeInforme && CLAVES.indexOf(k)>=0){ S.foundInGame[k]=true; S.lucidez+=100; Snd.moneda(); }
     updateHud(); }
   document.getElementById('insTitle').textContent=ins.t;
-  document.getElementById('insBody').textContent=ins.b;
+  document.getElementById('insBody').innerHTML=ins.b;
   document.getElementById('insEvidence').textContent='📚 '+ins.e;
   document.getElementById('insPts').textContent =
     (primera&&!desdeInforme)? t('masPuntos') : (S.foundInGame[k]? t('yaDescubierta') : t('reveladaInforme'));

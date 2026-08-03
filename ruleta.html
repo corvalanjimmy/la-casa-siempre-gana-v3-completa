@@ -115,13 +115,19 @@
   .resources{font-size:12.5px;color:var(--dim);line-height:1.6}
   #toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);padding:9px 16px;border-radius:24px;font-size:12.5px;font-weight:700;z-index:90;display:none;max-width:92%;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.5)}
 
-  .rueda{display:flex;justify-content:center;align-items:center;height:118px}
-  .num{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-       font-size:38px;font-weight:800;border:3px solid rgba(255,255,255,.18);transition:transform .15s}
-  .num.rojo{background:#b3172b;color:#fff} .num.negro{background:#161616;color:#fff}
-  .num.verde{background:#0f8a4a;color:#fff;box-shadow:0 0 26px rgba(15,138,74,.8)}
-  .num.gira{animation:girar .12s linear infinite}
-  @keyframes girar{50%{transform:scale(1.06) rotate(6deg)}}
+  .rueda{position:relative;display:flex;justify-content:center;align-items:center;margin:4px 0 2px}
+  #wheel{width:230px;height:230px;max-width:66vw;max-height:66vw;display:block}
+  .aguja{position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+         width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;
+         border-top:20px solid var(--gold);filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));z-index:3}
+  .resultado{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+             width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+             font-size:30px;font-weight:800;color:#fff;background:#120e1a;border:3px solid #5f4d80;
+             opacity:0;transition:opacity .25s, transform .25s;z-index:2}
+  .resultado.show{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+  .resultado.rojo{background:#b3172b;border-color:#e0405a}
+  .resultado.negro{background:#161616;border-color:#555}
+  .resultado.verde{background:#0f8a4a;border-color:#3ee08a;box-shadow:0 0 28px rgba(15,138,74,.85)}
   .msgru{text-align:center;font-size:15px;font-weight:800;min-height:42px;margin-top:8px}
   .msgru .sub{display:block;font-size:12px;font-weight:500;color:var(--dim);margin-top:3px}
   .hist{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:10px;min-height:20px}
@@ -172,7 +178,11 @@
 
     <div class="machine">
       <div class="machine-name" id="apuestaTxt"></div>
-      <div class="rueda"><div class="num" id="num">?</div></div>
+      <div class="rueda">
+        <div class="aguja"></div>
+        <canvas id="wheel" width="460" height="460"></canvas>
+        <div class="resultado" id="num"></div>
+      </div>
       <div class="msgru" id="msg"></div>
       <div class="hist" id="hist"></div>
       <div class="racha" id="racha">
@@ -244,7 +254,7 @@
 <script src="i18n.js"></script>
 <script src="sonido.js"></script>
 <script>
-const REGISTRO_URL = "https://script.google.com/macros/s/AKfycbyxpUXvNu2_pTJTJpeVB2MFdz-Hc6oPU3E_P7mWZyRKAZygIZNvUD2rKDbKKNDqRBuqQg/exec";
+const REGISTRO_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
 const MODULO='ruleta', APUESTA=5000, INICIAL=100000, TOTAL_INSIGHTS=4;
 const ROJOS=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 
@@ -308,6 +318,55 @@ function terminarYElegir(){ location.href='index.html?jugado=ruleta'; }
 function startGame(){ Snd.activar(); show('screen-game'); actualizar(); }
 
 function color(n){ return n===0? 'verde' : (ROJOS.indexOf(n)>=0? 'rojo':'negro'); }
+
+/* ---------- rueda ---------- */
+const ORDEN=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+let anguloRueda=0;
+function dibujarRueda(ang){
+  const c=document.getElementById('wheel'); if(!c) return;
+  const g=c.getContext('2d'), W=c.width, R=W/2, cx=R, cy=R;
+  g.clearRect(0,0,W,W);
+  const paso=2*Math.PI/ORDEN.length;
+  g.save(); g.translate(cx,cy); g.rotate(ang);
+  ORDEN.forEach(function(n,i){
+    const a0=i*paso - Math.PI/2 - paso/2, a1=a0+paso;
+    g.beginPath(); g.moveTo(0,0); g.arc(0,0,R-8,a0,a1); g.closePath();
+    const col=color(n);
+    g.fillStyle = col==='verde'? '#0f8a4a' : (col==='rojo'? '#b3172b' : '#1a1a1a');
+    g.fill();
+    g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1; g.stroke();
+    // número
+    g.save();
+    g.rotate(a0+paso/2); g.translate(R-26,0); g.rotate(Math.PI/2);
+    g.fillStyle='#fff'; g.font='bold 19px Arial'; g.textAlign='center'; g.textBaseline='middle';
+    g.fillText(String(n),0,0);
+    g.restore();
+  });
+  g.restore();
+  // aros
+  g.beginPath(); g.arc(cx,cy,R-7,0,2*Math.PI);
+  g.strokeStyle='#f5c542'; g.lineWidth=6; g.stroke();
+  g.beginPath(); g.arc(cx,cy,R*0.34,0,2*Math.PI);
+  g.fillStyle='#120e1a'; g.fill();
+  g.strokeStyle='#5f4d80'; g.lineWidth=4; g.stroke();
+}
+function anguloDe(n){
+  const i=ORDEN.indexOf(n), paso=2*Math.PI/ORDEN.length;
+  return -(i*paso);          // deja la casilla i bajo la aguja (arriba)
+}
+function animarRueda(n, listo){
+  const dur=2600, vueltas=5;
+  const destino = anguloDe(n) + vueltas*2*Math.PI;
+  const inicio = anguloRueda % (2*Math.PI);
+  const t0=performance.now();
+  (function paso(t){
+    const p=Math.min(1,(t-t0)/dur);
+    const e=1-Math.pow(1-p,3);                 // desaceleración
+    anguloRueda = inicio + (destino-inicio)*e;
+    dibujarRueda(anguloRueda);
+    if(p<1) requestAnimationFrame(paso); else listo();
+  })(t0);
+}
 function actualizar(){
   document.getElementById('balance').textContent = fmt(S.balance);
   document.getElementById('lucidez').textContent = S.lucidez;
@@ -348,8 +407,8 @@ function pintarHistoria(){
   const h=S.historia.slice(-24);
   document.getElementById('hist').innerHTML = h.map(c=>'<span class="hb '+c+'"></span>').join('');
 }
-function girarUno(){
-  const n = Math.floor(Math.random()*37), col = color(n);
+function girarUno(nDado){
+  const n = (nDado===undefined)? Math.floor(Math.random()*37) : nDado, col = color(n);
   S.giros++; S.apostado += APUESTA; S.balance -= APUESTA;
   if(col==='rojo'){ S.balance += APUESTA*2; S.ganadas++; }
   if(n===0) S.ceros++;
@@ -366,13 +425,12 @@ function jugar(cuantos){
   if(cuantos===1){
     S.corriendo=true;
     const num=document.getElementById('num');
-    num.classList.add('gira'); Snd.girar();
-    let ticks=0;
-    const anim=setInterval(function(){
-      const r=Math.floor(Math.random()*37);
-      num.textContent=r; num.className='num gira '+color(r);
-      if(++ticks>8){ clearInterval(anim); resolverUno(); }
-    },90);
+    num.className='resultado'; num.textContent='';
+    const n=Math.floor(Math.random()*37);
+    Snd.girar();
+    let tic=0;
+    const tictac=setInterval(function(){ if(++tic<14) Snd.rodillo(); else clearInterval(tictac); },170);
+    animarRueda(n, function(){ clearInterval(tictac); resolverUno(n); });
   } else {
     S.corriendo=true;
     let hechos=0;
@@ -384,9 +442,9 @@ function jugar(cuantos){
       pintarHistoria(); actualizar();
       if(hechos>=cuantos || S.balance<APUESTA){
         clearInterval(lote); S.corriendo=false;
+        anguloRueda += 1.7; dibujarRueda(anguloRueda);
         const num=document.getElementById('num');
-        num.className='num '+S.historia[S.historia.length-1];
-        num.textContent='';
+        num.className='resultado'; num.textContent='';
         document.getElementById('msg').innerHTML='';
         Snd.moneda();
         if(S.giros>=100 && !S.insightsSeen['rugrandes']) setTimeout(()=>showInsight('rugrandes'),600);
@@ -396,11 +454,10 @@ function jugar(cuantos){
     },40);
   }
 }
-function resolverUno(){
-  const r=girarUno();
+function resolverUno(nDado){
+  const r=girarUno(nDado);
   const num=document.getElementById('num'), msg=document.getElementById('msg');
-  num.classList.remove('gira');
-  num.className='num '+r.col; num.textContent=r.n;
+  num.className='resultado show '+r.col; num.textContent=r.n;
   if(r.col==='rojo'){ msg.innerHTML='<span style="color:var(--green)">'+t('ruGanaste')+' +'+fmt(APUESTA)+'</span>'; Snd.festejo(); }
   else if(r.col==='verde'){ msg.innerHTML='<span style="color:#4ade80">'+t('ruCeroMsg')+'</span>'; Snd.alerta();
     if(!S.insightsSeen['rucero']) setTimeout(()=>showInsight('rucero'),1100); }
@@ -426,7 +483,7 @@ function showInsight(k, desdeInforme){
     if(!desdeInforme && CLAVES.indexOf(k)>=0){ S.foundInGame[k]=true; S.lucidez+=100; Snd.moneda(); }
     actualizar(); }
   document.getElementById('insTitle').textContent=ins.t;
-  document.getElementById('insBody').textContent=ins.b;
+  document.getElementById('insBody').innerHTML=ins.b;
   document.getElementById('insEvidence').textContent='📚 '+ins.e;
   document.getElementById('insPts').textContent =
     (primera&&!desdeInforme)? t('masPuntos') : (S.foundInGame[k]? t('yaDescubierta') : t('reveladaInforme'));
@@ -515,7 +572,7 @@ function guardarResultado(){
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded',function(){
-  pintar(); pintarToggles(); actualizar();
+  pintar(); pintarToggles(); actualizar(); dibujarRueda(0);
   document.title = (IDIOMA==='en'?'The Honest Roulette':'La Ruleta Honesta');
 });
 </script>
