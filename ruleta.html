@@ -288,9 +288,36 @@ function enviarTelemetria(completo){
     xrayTiempoSeg:Math.round(T.xrayMsTotal/1000), tarjetasAbiertas:l.length,
     lecturaMediaSeg:l.length? +(l.reduce((a,b)=>a+b,0)/l.length/1000).toFixed(1):'',
     volvioABuscar:T.volviBuscar, clicsReferencias:T.clicsRef, sonido:Snd.estaActivo()?'si':'no' };
-  try{ if(navigator.sendBeacon && REGISTRO_URL.indexOf('PEGA_AQUI')<0)
-    navigator.sendBeacon(REGISTRO_URL, new URLSearchParams(datos)); }catch(e){}
+  mandar(datos, !completo);
 }
+
+/* ---------- envío robusto a la planilla ---------- */
+function mandar(datos, alSalir){
+  if(!REGISTRO_URL || REGISTRO_URL.indexOf('PEGA_AQUI') >= 0) return;
+  var cuerpo = new URLSearchParams(datos);
+  if(alSalir){                       // la página se está cerrando: solo beacon sirve
+    try{ if(navigator.sendBeacon) navigator.sendBeacon(REGISTRO_URL, cuerpo); }catch(e){}
+    return;
+  }
+  try{                               // envío normal: formulario en un iframe oculto
+    var marco = document.getElementById('telFrame');
+    if(!marco){
+      marco = document.createElement('iframe');
+      marco.id='telFrame'; marco.name='telFrame'; marco.style.display='none';
+      document.body.appendChild(marco);
+    }
+    var form = document.createElement('form');
+    form.method='POST'; form.action=REGISTRO_URL; form.target='telFrame'; form.style.display='none';
+    Object.keys(datos).forEach(function(k){
+      var i=document.createElement('input'); i.type='hidden'; i.name=k; i.value=datos[k]; form.appendChild(i);
+    });
+    document.body.appendChild(form); form.submit();
+    setTimeout(function(){ if(form.parentNode) form.parentNode.removeChild(form); }, 4000);
+  }catch(e){
+    try{ if(navigator.sendBeacon) navigator.sendBeacon(REGISTRO_URL, cuerpo); }catch(e2){}
+  }
+}
+
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'&&S.giros) enviarTelemetria(false); });
 window.addEventListener('pagehide',function(){ if(S.giros) enviarTelemetria(false); });
 document.addEventListener('click',function(e){ const a=e.target.closest?e.target.closest('.ref a'):null; if(a) T.clicsRef++; });
